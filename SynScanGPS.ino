@@ -193,14 +193,26 @@ void loop()
       binMsg.altitude = (int16_t) gps.altitude;
       binMsg.heading = (uint16_t) gps.magvariation;
       binMsg.speed = (uint16_t) gps.speed;
-      binMsg.fixIndicator = gps.fix;
-      binMsg.qualityOfFix = gps.fixquality;
+      switch (gps.fixquality)
+      {
+        case 1 : binMsg.fixIndicator = 0; // GPS
+        case 2 : binMsg.fixIndicator = 1; // DGPS
+        default : binMsg.fixIndicator = 5; // Invalid
+      }
+      if (gps.fix)
+      {
+        binMsg.qualityOfFix = gps.fixquality_3d - 1; // 2D fix or 3D fix
+      }
+      else
+      {
+        binMsg.qualityOfFix = 0; // no fix
+      }
       binMsg.numberOfSv = gps.satellites;
       binMsg.numberOfSvInFix = gps.satellites;
       binMsg.gdop = 1;
-      binMsg.pdop = 1;
+      binMsg.pdop = (uint8_t) gps.PDOP;
       binMsg.hdop = (uint8_t) gps.HDOP;
-      binMsg.vdop = 1;
+      binMsg.vdop = (uint8_t) gps.VDOP;
       binMsg.tdop = 1;
 
       if (gps.fix)
