@@ -18,4 +18,5 @@ It depends on what combination of sensors you choose and the specific data how t
 
 <H2>ETHOS Battery widget</H2>
 Widget for displaying telemetry from Vario sensor.
-![vario-halfwindow](https://github.com/user-attachments/assets/3a331179-4b96-47de-b5f0-d2338b30bef2)
+
+![vario-halfwindow](https://github.com/user-attachments/assets/c6dd3739-6096-4729-8e28-dafa8f15ef78)
