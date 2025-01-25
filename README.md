@@ -15,3 +15,7 @@ The presented screenshots are from the X20pro simulator, which currently only ha
 ![batcap-menu2](https://github.com/user-attachments/assets/7e75bcc0-6a2c-4726-83ca-3667fcb94271)
 
 It depends on what combination of sensors you choose and the specific data how the sensor will look. The voltage to capacity conversion tables support LiPo, high voltage LiPo, Lion and LiFe batteries.
+
+<H2>ETHOS Battery widget</H2>
+Widget for displaying telemetry from Vario sensor.
+![vario-halfwindow](https://github.com/user-attachments/assets/3a331179-4b96-47de-b5f0-d2338b30bef2)
