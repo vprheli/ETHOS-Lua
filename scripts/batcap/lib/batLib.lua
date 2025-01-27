@@ -20,7 +20,7 @@
 -- History : Date        Version Author   Comment
 --           ----------  ------- -------- ------------------------------------
 --           15.01.2025  0.0.1   VPRHELI  initial version
---           22.01.2025  0.9.0   VPRHELI  initial version
+--           27.01.2025  1.0.0   VPRHELI  minor changes
 -- =============================================================================
 -- Snsor IDs
 -- https://openrcforums.com/forum/viewtopic.php?t=5701
@@ -577,19 +577,6 @@ function batLib.paint (widget)
   end
   
   if widget.screenType ~= "Wrongwgt" then
-    -- LiPo Sensor            ID : 0x0300
-    -- Voltage Sensor (VFAS)  ID : 0x0210
-    -- Current Sensor         ID : 0x0200
---    if widget.LipoSensor == nil then
---      print ("### paint ### widget.LipoSensor     : nil")
---    else
---      print ("### paint ### widget.LipoSensor     : " .. widget.LipoSensor:name())    
---    end
---    if widget.VoltageSensor == nil then
---        print ("### paint ### widget.VoltageSensor  : nil")
---    else
---      print ("### paint ### widget.VoltageSensor  : " .. widget.VoltageSensor:name()) 
---    end
     if (widget.LipoSensor ~= nil) or (widget.VoltageSensor ~= nil) then
       batLib.paintBattery (widget)         
     else

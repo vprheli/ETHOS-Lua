@@ -20,7 +20,7 @@
 -- History : Date        Version Author   Comment
 --           ----------  ------- -------- ------------------------------------
 --           23.01.2025  0.0.1   VPRHELI  initial version
---           22.01.2025  0.9.0   VPRHELI  initial version
+--           27.01.2025  1.0.0   VPRHELI  minor changes
 -- =============================================================================
 
 local utils   = {}

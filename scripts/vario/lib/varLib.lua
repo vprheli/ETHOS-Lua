@@ -20,7 +20,7 @@
 -- History : Date        Version Author   Comment
 --           ----------  ------- -------- ------------------------------------
 --           23.01.2025  0.0.1   VPRHELI  initial version
---           22.01.2025  0.9.0   VPRHELI  initial version
+--           27.01.2025  1.0.0   VPRHELI  minor changes
 -- =============================================================================
 -- Snsor IDs
 -- https://openrcforums.com/forum/viewtopic.php?t=5701
@@ -300,7 +300,8 @@ function varLib.paint (widget)
   libs.batLib.CheckEnvironment (widget)
   libs.batLib.readSensors(widget)
   -- force background
-  lcd.color(conf.colors.panelBackground)
+  --lcd.color(conf.colors.panelBackground)
+  lcd.color(widget.bgcolor)  
   lcd.drawFilledRectangle(0, 0, widget.zoneWidth, widget.zoneHeight)  
   
   if widget.screenType ~= "Wrongwgt" then

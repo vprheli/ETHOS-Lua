@@ -22,19 +22,19 @@
 -- History : Date        Version Author   Comment
 --           ----------  ------- -------- ------------------------------------
 --           15.01.2025  0.0.1   VPRHELI  initial version
---           22.01.2025  0.9.0   VPRHELI  initial version
+--           27.01.2025  1.0.0   VPRHELI  minor changes
 -- =============================================================================
 --
 -- TODO
 -- carbon background - taken from the net and height according to the lowest widget - I would name it carbon.bmp
 -- white background
 
-local version           = "v0.9.0"
+local version           = "v1.0.0"
 local environment       = system.getVersion()
 -- multilanguage text table
 -- if Yo want add your supported mother language, extend table and let me know, I will push it in the Git
 local transtable        = { en = { wgname          = "Battery Capacity",
-                                   batcap          = "Battery Capacity",
+                                   menuname        = "Battery Capacity",
                                    battype         = "Battery Type",
                                    LiPo            = "Lipo Sensor",
                                    VoltageSensor   = "Voltage Sensor (VFAS)",
@@ -48,7 +48,7 @@ local transtable        = { en = { wgname          = "Battery Capacity",
                                  },
                             cz = {
                                    wgname          = "Kapacita baterie",
-                                   batcap          = "Kapacita baterie",
+                                   menuname        = "Kapacita baterie",
                                    battype         = "Typ baterie",
                                    LiPo            = "Lipo senzor",
                                    VoltageSensor   = "Senzor napětí (VFAS)",
@@ -62,7 +62,7 @@ local transtable        = { en = { wgname          = "Battery Capacity",
                                  },
                             de = {
                                    wgname          = "Batteriekapazitat",
-                                   batcap          = "Batteriekapazität",
+                                   menuname        = "Batteriekapazität",
                                    battype         = "Akku-Typ",
                                    LiPo            = "Lipo-Sensor",
                                    VoltageSensor   = "Spannungssensor (VFAS)",
@@ -161,13 +161,14 @@ local function create()
                    batPowMax      = 0,          -- battery Power Max                      
                    lastVoltage    = 0,          -- last battery votage when we lose telemetry
                    BatType        = 0,
-                   initPending    = true,
-                   runBgTasks     = false,
                    batCapmAh      = 0,
                    FlightReset    = 0,          -- should be zero
-                   -- layout
+                   -- config
                    color1         = lcd.RGB(0xEA, 0x5E, 0x00),   
                    transtable     = transtable,
+                   -- status
+                   initPending    = true,
+                   runBgTasks     = false,
                    -- layout
                    batteryIcon    = nil,      -- empty battery icon
                    screenHeight   = nil,

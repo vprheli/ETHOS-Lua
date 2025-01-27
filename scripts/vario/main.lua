@@ -20,51 +20,41 @@
 -- History : Date        Version Author   Comment
 --           ----------  ------- -------- ------------------------------------
 --           23.01.2025  0.0.1   VPRHELI  initial version
---           22.01.2025  0.9.0   VPRHELI  initial version
+--           27.01.2025  1.0.0   VPRHELI  minor changes
 -- =============================================================================
 --
 -- TODO
 
-local version           = "v0.0.1"
+local version           = "v1.0.0"
 local environment       = system.getVersion()
 -- multilanguage text table
 -- if Yo want add your supported mother language, extend table and let me know, I will push it in the Git
-local transtable        = { en = { wgname          = "Battery Capacity",
-                                   batcap          = "Battery Capacity",
-                                   battype         = "Battery Type",
-                                   LiPo            = "Lipo Sensor",
-                                   VoltageSensor   = "Voltage Sensor (VFAS)",
-                                   VFAScells       = "Battery Cells Count",
-                                   CurrSensor      = "Current Sensor",
-                                   curmax          = "Current / Max",
+local transtable        = { en = { wgname          = "Vario",
+                                   menuname        = "Vario",
+                                   VarioSensor     = "Height sensor",
+                                   VertSensor      = "Vertical speed sensor",
                                    wgtsmall        = "Small Widget",
                                    badSensor       = "Bad sensor type",
                                    noTelemetry     = "No Telemetry",
-                                   color1          = "Select color",
+                                   bgcolor         = "Select background color",
                                  },
-                            cz = {
-                                   wgname          = "Vario",
-                                   batcap          = "Vário",
+                            cz = { wgname          = "Vario",
+                                   menuname        = "Vário",
                                    VarioSensor     = "Senzor výšky",
                                    VertSensor      = "Senzor vertikální rychlosti",
                                    wgtsmall        = "Málo místa",
                                    badSensor       = "Špatně zvolený senzor",
                                    noTelemetry     = "Chybí telemetrie",
-                                   color1          = "Vyberte barvu",
+                                   bgcolor         = "Vyberte barvu pozadí",
                                  },
-                            de = {
-                                   wgname          = "Batteriekapazitat",
-                                   batcap          = "Batteriekapazität",
-                                   battype         = "Akku-Typ",
-                                   LiPo            = "Lipo-Sensor",
-                                   VoltageSensor   = "Spannungssensor (VFAS)",
-                                   VFAScells       = "Anzahl der Batteriezellen",
-                                   CurrSensor      = "Stromsensor",
-                                   curmax          = "Aktuell / Max",
+                            de = { wgname          = "Vario",
+                                   menuname        = "Vário",
+                                   VarioSensor     = "Höhensensor",
+                                   VertSensor      = "Vertikaler Geschwindigkeitssensor",
                                    wgtsmall        = "Kleines Widget",
                                    badSensor       = "Schlechter Sensortyp",
                                    noTelemetry     = "Keine Telemetrie",
-                                   color1          = "Wähle Farbe",
+                                   bgcolor         = "Hintergrundfarbe auswählen",
                                  }                                 
                           }
                           
@@ -148,12 +138,13 @@ local function create()
                    altitude       = nil,
                    vertSpeed      = nil,
                    lastAltitude   = nil,
-                   initPending    = true,
-                   runBgTasks     = false,
                    FlightReset    = 0,          -- should be zero
                    -- layout
-                   color1         = lcd.RGB(0, 160, 224),   
+                   bgcolor        = lcd.RGB(0, 160, 224),   
                    transtable     = transtable,
+                   -- status
+                   initPending    = true,
+                   runBgTasks     = false,                   
                    -- layout
                    screenHeight   = nil,
                    screenWidth    = nil, 

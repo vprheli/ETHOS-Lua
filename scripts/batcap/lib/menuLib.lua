@@ -20,7 +20,7 @@
 -- History : Date        Version Author   Comment
 --           ----------  ------- -------- ------------------------------------
 --           15.01.2025  0.0.1   VPRHELI  initial version
---           22.01.2025  0.9.0   VPRHELI  initial version
+--           27.01.2025  1.0.0   VPRHELI  minor changes
 -- =============================================================================
 
 local menuLib     = {}
@@ -47,7 +47,7 @@ function menuLib.configure(widget)
   
   local cellsEnabled = widget.VoltageSensor
   -- Battery Capacity Version
-  line = form.addLine(libs.utils.translate ("wgname") .. "  " .. conf.version)
+  line = form.addLine(libs.utils.translate ("menuname") .. "  " .. conf.version)
   
   -- Battery Type
   line = form.addLine(libs.utils.translate ("battype"))

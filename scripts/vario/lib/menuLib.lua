@@ -20,7 +20,7 @@
 -- History : Date        Version Author   Comment
 --           ----------  ------- -------- ------------------------------------
 --           23.01.2025  0.0.1   VPRHELI  initial version
---           22.01.2025  0.9.0   VPRHELI  initial version
+--           27.01.2025  1.0.0   VPRHELI  minor changes
 -- =============================================================================
 
 local menuLib     = {}
@@ -47,7 +47,7 @@ function menuLib.configure(widget)
   
   local cellsEnabled = widget.VoltageSensor
   -- Battery Capacity Version
-  line = form.addLine(libs.utils.translate ("wgname") .. "  " .. conf.version)
+  line = form.addLine(libs.utils.translate ("menuname") .. "  " .. conf.version)
   
   -- Vario Sensor
   line = form.addLine(libs.utils.translate("VarioSensor"))
@@ -71,8 +71,8 @@ function menuLib.configure(widget)
                                     end
                                  end) 
   -- Some color
-  line = form.addLine(libs.utils.translate("color1"))
-  form.addColorField(line, nil, function() return widget.color1 end, function(color) widget.color1 = color end)
+  line = form.addLine(libs.utils.translate("bgcolor"))
+  form.addColorField(line, nil, function() return widget.bgcolor end, function(color) widget.bgcolor = color end)
 
 end
 
