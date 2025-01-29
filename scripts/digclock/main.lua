@@ -20,11 +20,12 @@
 -- History : Date        Version Author   Comment
 --           ----------  ------- -------- ------------------------------------
 --           23.01.2025  1.0.0   VPRHELI  initial version
+--           28.01.2025  1.0.1   VPRHELI  Getting timer value, HW different in simulator
 -- =============================================================================
 --
 -- TODO
 
-local version           = "v1.0.0"
+local version           = "v1.0.1"
 local environment       = system.getVersion()
 -- multilanguage text table
 -- if Yo want add your supported mother language, extend table and let me know, I will push it in the Git
@@ -143,6 +144,7 @@ local function create()
 	return { 
                    -- Stopwatch
                    StopWatch      = nil,        -- Stopwatch
+                   swMember       = nil,
                    swtime         = nil,
                    FlightReset    = 0,          -- should be zero
                    -- config
@@ -198,6 +200,7 @@ local function configure(widget)
   print ("### function configure()")
   libs.menuLib.configure (widget)
   widget.screenHeight = nil         -- force varLib.CheckEnvironment (widget)
+  widget.swMember     = nil
 end
 -- #################################################################### 
 -- # read                                                             #
@@ -248,7 +251,6 @@ local function wakeup(widget)
 
   if widget.runBgTasks == true then
     libs.utils.checkTelemetry()
-    --libs.utils.checkFlightReset(widget)           -- not necessary in this widget
     if actual_time > widget.last_time then
       widget.last_time = actual_time + 1 / g_updates_per_second   -- new time for widget refresh
       if lcd.isVisible() then

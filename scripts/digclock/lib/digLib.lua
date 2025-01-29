@@ -227,10 +227,7 @@ end
 -- #  digLib.readSensors                                              #
 -- #################################################################### 
 function digLib.readSensors(widget)
-  if conf.telemetryState == 1 then
-    -- Stopwatch value
-    widget.swtime = digLib.getSourceValue(widget.StopWatch)
-  end
+  widget.swtime = digLib.getSourceValue(widget.StopWatch)
 end
 -- #################################################################### 
 -- #  diglib.paintDigital                                             #
@@ -277,8 +274,8 @@ end
 -- # digLib.paint                                                     #
 -- ####################################################################
 function digLib.paint (widget)
-  libs.digLib.CheckEnvironment (widget)
-  libs.digLib.readSensors(widget)
+  digLib.CheckEnvironment (widget)
+  digLib.readSensors(widget)
   -- force background
   lcd.color(widget.bgcolor)  
   lcd.drawFilledRectangle(0, 0, widget.zoneWidth, widget.zoneHeight)  

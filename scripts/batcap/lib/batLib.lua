@@ -191,7 +191,7 @@ function batLib.readSensors(widget)
     -- Voltage sensor
     local sensorV  = widget.VoltageSensor
     --print("#### widget.voltage  : " .. widget.voltage)
-    if sensorV ~= nil and sensorV:name() == "VFAS" then
+    if sensorV ~= nil then
       widget.voltage = sensorV:value()
     else
       widget.voltage = nil
