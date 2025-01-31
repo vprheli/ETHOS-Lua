@@ -71,6 +71,10 @@ function menuLib.configure(widget)
   -- Background color
   line = form.addLine(libs.utils.translate("bgcolor"))
   form.addColorField(line, nil, function() return widget.bgcolor end, function(color) widget.bgcolor = color end)
+  
+    -- Text color
+  line = form.addLine(libs.utils.translate("txtcolor"))
+  form.addColorField(line, nil, function() return widget.txtcolor end, function(color) widget.txtcolor = color end)
 
 end
 

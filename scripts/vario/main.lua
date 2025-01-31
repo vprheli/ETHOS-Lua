@@ -152,7 +152,7 @@ local function create()
                    zoneWidth      = nil,
                    screenType     = "",
                    last_time      = 0,
-                   noTelFrameT    = 5,      -- thickness of no telemetry frame
+                   noTelFrameT    = 3,      -- thickness of no telemetry frame
                    frameX         = 60,     -- X frame size for pitch attitude markers
                    frameY         = 18,     -- Y frame size for pitch attitude markers
                    markerL_len    = 10,

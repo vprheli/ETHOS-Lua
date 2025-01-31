@@ -25,7 +25,7 @@
 --
 -- TODO
 
-local version           = "v1.0.1"
+local version           = "v1.0.2"
 local environment       = system.getVersion()
 -- multilanguage text table
 -- if Yo want add your supported mother language, extend table and let me know, I will push it in the Git
@@ -40,6 +40,7 @@ local transtable        = { en = { wgname          = "Battery Capacity",
                                    badSensor       = "Bad sensor type",
                                    noTelemetry     = "No Telemetry",
                                    bgcolor         = "Select background color",
+                                   txtcolor        = "Select text color",
                                  },
                             cz = {
                                    wgname          = "Digitalni stopky",
@@ -53,6 +54,7 @@ local transtable        = { en = { wgname          = "Battery Capacity",
                                    badSensor       = "Špatně zvolený senzor",
                                    noTelemetry     = "Chybí telemetrie",
                                    bgcolor         = "Vyberte barvu pozadí",
+                                   txtcolor        = "Vyberte barvu textu",
                                  },
                             de = {
                                    wgname          = "Stoppuhr",
@@ -66,6 +68,7 @@ local transtable        = { en = { wgname          = "Battery Capacity",
                                    badSensor       = "Schlechter Sensortyp",
                                    noTelemetry     = "Keine Telemetrie",
                                    bgcolor         = "Hintergrundfarbe auswählen",
+                                   txtcolor        = "Textfarbe auswählen",
                                  }                                 
                           }
                           
@@ -149,9 +152,11 @@ local function create()
                    FlightReset    = 0,          -- should be zero
                    -- config
                    bgcolor        = lcd.RGB(0, 0, 0),   
+                   txtcolor       = lcd.RGB(128, 128, 128),   
                    segmentColor   = lcd.RGB(255, 0, 0), 
                    transtable     = transtable,
                    digits         = {},
+                   paintName      = false,
                    -- status
                    initPending    = true,
                    runBgTasks     = false,
@@ -163,11 +168,12 @@ local function create()
                    screenType     = "",
                    iconX          = nil,
                    iconW          = nil,
+                   iconH          = nil,                   
                    iconY          = nil,
                    iconColW       = nil,
                    icon_dX        = nil,
                    last_time      = 0,
-                   noTelFrameT    = 5,      -- thickness of no telemetry frame
+                   noTelFrameT    = 3,      -- thickness of no telemetry frame
                  }
 end
 -- #################################################################### 
@@ -211,6 +217,7 @@ local function read(widget)
   widget.StopWatch              = storage.read("StopWatch")  
   widget.segmentColor           = storage.read("segmentColor")  
   widget.bgcolor                = storage.read("bgcolor")
+  widget.txtcolor               = storage.read("txtcolor")
   
 	return true
 end
@@ -222,6 +229,7 @@ local function write(widget)
   storage.write("StopWatch"    , widget.StopWatch)  
   storage.write("segmentColor" , widget.segmentColor)  
 	storage.write("bgcolor"      , widget.bgcolor)
+	storage.write("txtcolor"     , widget.txtcolor)
 
 	return true
 end

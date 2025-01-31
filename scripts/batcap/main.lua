@@ -29,7 +29,7 @@
 -- carbon background - taken from the net and height according to the lowest widget - I would name it carbon.bmp
 -- white background
 
-local version           = "v1.0.0"
+local version           = "v1.0.1"
 local environment       = system.getVersion()
 -- multilanguage text table
 -- if Yo want add your supported mother language, extend table and let me know, I will push it in the Git
@@ -37,7 +37,7 @@ local transtable        = { en = { wgname          = "Battery Capacity",
                                    menuname        = "Battery Capacity",
                                    battype         = "Battery Type",
                                    LiPo            = "Lipo Sensor",
-                                   VoltageSensor   = "Voltage Sensor (VFAS)",
+                                   VoltageSensor   = "Voltage Sensor",
                                    VFAScells       = "Battery Cells Count",
                                    CurrSensor      = "Current Sensor",
                                    curmax          = "Current / Max",
@@ -51,7 +51,7 @@ local transtable        = { en = { wgname          = "Battery Capacity",
                                    menuname        = "Kapacita baterie",
                                    battype         = "Typ baterie",
                                    LiPo            = "Lipo senzor",
-                                   VoltageSensor   = "Senzor napětí (VFAS)",
+                                   VoltageSensor   = "Senzor napětí",
                                    VFAScells       = "Počet článků baterie",
                                    CurrSensor      = "Senzor proudu",
                                    curmax          = "Aktuální / Max",
@@ -65,7 +65,7 @@ local transtable        = { en = { wgname          = "Battery Capacity",
                                    menuname        = "Batteriekapazität",
                                    battype         = "Akku-Typ",
                                    LiPo            = "Lipo-Sensor",
-                                   VoltageSensor   = "Spannungssensor (VFAS)",
+                                   VoltageSensor   = "Spannungssensor",
                                    VFAScells       = "Anzahl der Batteriezellen",
                                    CurrSensor      = "Stromsensor",
                                    curmax          = "Aktuell / Max",
@@ -154,7 +154,7 @@ local function create()
                    cellMinValue   = nil,                   
                    -- VFAS Values
                    voltage        = nil,
-                   VFAScells      = 2,
+                   VFAScells      = 3,
                    current        = nil,
                    currMax        = 0,          -- battery current X.XA
                    batPow         = nil,        -- battery Power
@@ -193,7 +193,7 @@ local function create()
                    battCellH      = 23,       -- battery cell rectangle Height
                    battCelldY     = 6,        -- battery cell rectangle vertical offset
                    curColOffset   = 20,       -- current column offset for full page zone 
-                   noTelFrameT    = 5,        -- thickness of no telemetry frame
+                   noTelFrameT    = 3,        -- thickness of no telemetry frame
                  }
 end
 -- #################################################################### 

@@ -82,7 +82,7 @@ function batLib.CheckEnvironment (widget)
       widget.battW   = 198                                           -- battery large icon Width      ------------------   0    
       widget.battH   = 350                                           -- battery large icon Height     --       30     --
       widget.battX   = 50                                            -- battery X position            ------------------  30
-      widget.battY   = (widget.zoneHeight - 350) / 3          -- battery Y position            --              --
+      widget.battY   = (widget.zoneHeight - 350) / 3                 -- battery Y position            --              --
       widget.battfdX = 3                                             -- battery fill dX               --      303     --
       widget.battfdY = 30                                            -- battery fill dY               ------------------ 333
       widget.battfW  = 190                                           -- battery fill Width            --       17     --
@@ -93,7 +93,7 @@ function batLib.CheckEnvironment (widget)
       widget.battW   = 113                                           -- battery small icon Width      ------------------   0 
       widget.battH   = 200                                           -- battery small icon Height     --      17      --     
       widget.battX   = 50                                            -- battery X position            ------------------  17 
-      widget.battY   = (widget.zoneHeight - 200) / 3          -- battery Y position            --              --     
+      widget.battY   = (widget.zoneHeight - 200) / 3                 -- battery Y position            --              --     
       widget.battfdX = 1                                             -- battery fill dX               --     173      --     
       widget.battfdY = 17                                            -- battery fill dY               ------------------ 190 
       widget.battfW  = 111                                           -- battery fill Width            --      10      --     
@@ -103,8 +103,8 @@ function batLib.CheckEnvironment (widget)
       widget.batteryIcon = libs.utils.loadBitmap("empty480320.png")
       widget.battW   = 113                                           -- battery small icon Width      ------------------   0    
       widget.battH   = 200                                           -- battery small icon Height     --      17      --    
-      widget.battX   = (widget.zoneWidth - widget.battW - widget.battVwidth) / 3 ------------------  17    
-      widget.battY   = (widget.zoneHeight - 200) / 3          -- battery Y position            --              --    
+      widget.battX   = (widget.zoneWidth - widget.battW - widget.battVwidth) / 3                      ------------------  17    
+      widget.battY   = (widget.zoneHeight - 200) / 3                 -- battery Y position            --              --    
       widget.battfdX = 1                                             -- battery fill dX               --     173      --    
       widget.battfdY = 17                                            -- battery fill dY               ------------------ 190    
       widget.battfW  = 111                                           -- battery fill Width            --      10      --    
@@ -114,8 +114,8 @@ function batLib.CheckEnvironment (widget)
       widget.batteryIcon = libs.utils.loadBitmap("empty480320.png")
       widget.battW   = 113                                           -- battery small icon Width      ------------------   0
       widget.battH   = 200                                           -- battery small icon Height     --      17      --
-      widget.battX   = (widget.zoneWidth - widget.battW - widget.battVwidth) / 3 ------------------  17
-      widget.battY   = (widget.zoneHeight - 200) / 3          -- battery Y position            --              --
+      widget.battX   = (widget.zoneWidth - widget.battW - widget.battVwidth) / 3                      ------------------  17
+      widget.battY   = (widget.zoneHeight - 200) / 3                 -- battery Y position            --              --
       widget.battfdX = 1                                             -- battery fill dX               --     173      --
       widget.battfdY = 17                                            -- battery fill dY               ------------------ 190
       widget.battfW  = 111                                           -- battery fill Width            --      10      --
@@ -125,8 +125,8 @@ function batLib.CheckEnvironment (widget)
       widget.batteryIcon = libs.utils.loadBitmap("empty480320.png")
       widget.battW   = 113                                           -- battery small icon Width      ------------------   0
       widget.battH   = 200                                           -- battery small icon Height     --      17      --
-      widget.battX   = (widget.zoneWidth - widget.battW - widget.battVwidth) / 3 ------------------  17
-      widget.battY   = (widget.zoneHeight - 200) / 3          -- battery Y position            --              --
+      widget.battX   = (widget.zoneWidth - widget.battW - widget.battVwidth) / 3                      ------------------  17
+      widget.battY   = (widget.zoneHeight - 200) / 3                 -- battery Y position            --              --
       widget.battfdX = 1                                             -- battery fill dX               --     173      --
       widget.battfdY = 17                                            -- battery fill dY               ------------------ 190
       widget.battfW  = 111                                           -- battery fill Width            --      10      --
@@ -197,12 +197,23 @@ function batLib.readSensors(widget)
       widget.voltage = nil
     end
     
+    -- D E B U G --
+--    widget.cellValue        = 15.34
+--    --widget.cellsCount       = 4
+--    widget.cellsValueArr[0] = 3.83
+--    widget.cellsValueArr[1] = 3.84
+--    widget.cellsValueArr[2] = 3.84
+--    widget.cellsValueArr[3] = 3.83
+--    widget.cellMinValue     = 3.83 
+    
+--    widget.voltage          = 15.0
+    
     -- Current sensor
     local sensorA = widget.CurrentSensor
     if sensorA ~= nil then
       widget.current = sensorA:value()
       -- calculate current max
-      if widget.current > widget.currMax then
+      if sensorA ~= nil and widget.current > widget.currMax then
         widget.currMax = widget.current
       end
     else
