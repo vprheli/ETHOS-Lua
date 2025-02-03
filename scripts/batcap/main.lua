@@ -143,58 +143,58 @@ local function create()
   --print ("### function create()")
   
 	return { 
-                   -- telemetry
-                   LiPoSensor     = nil,        -- FrSky FLVS
-                   CurrentSensor  = nil,        -- FrSky FAS40/80
-                   VoltageSensor  = nil,        -- FrSky FAS40/80
-                   -- LiPo Values
-                   cellsCount     = nil,
-                   cellsValueArr  = {},
-                   cellValue      = nil,
-                   cellMinValue   = nil,                   
-                   -- VFAS Values
-                   voltage        = nil,
-                   VFAScells      = 3,
-                   current        = nil,
-                   currMax        = 0,          -- battery current X.XA
-                   batPow         = nil,        -- battery Power
-                   batPowMax      = 0,          -- battery Power Max                      
-                   lastVoltage    = 0,          -- last battery votage when we lose telemetry
-                   BatType        = 0,
-                   batCapmAh      = 0,
-                   FlightReset    = 0,          -- should be zero
-                   -- config
-                   color1         = lcd.RGB(0xEA, 0x5E, 0x00),   
-                   transtable     = transtable,
-                   -- status
-                   initPending    = true,
-                   runBgTasks     = false,
-                   -- layout
-                   batteryIcon    = nil,      -- empty battery icon
-                   screenHeight   = nil,
-                   screenWidth    = nil, 
-                   zoneHeight     = nil,
-                   zoneWidth      = nil,
-                   battX          = nil,      -- battery large icon X position update in CheckEnvironment()
-                   battY          = nil,      -- battery large icon Y position update in CheckEnvironment()
-                   battW          = nil,      -- battery large icon Width      update in CheckEnvironment()
-                   battH          = nil,      -- battery large icon Height     update in CheckEnvironment()
-                   battfdX        = nil,      -- battery fill dX               update in CheckEnvironment()
-                   battfdY        = nil,      -- battery fill dY               update in CheckEnvironment()
-                   battfW         = nil,      -- battery fill Width            update in CheckEnvironment()
-                   battfH         = nil,      -- battery fill Height           update in CheckEnvironment()
-                   screenType     = "",
-                   flash          = 0,        -- flash voltage rectangle YELLOW / RED if telemetry lost
-                   last_time      = 0,
-                   battVwidth     = 130,      -- battery voltage/current frame width
-                   battCFSwidth   = 200,      -- battery current full frame width
-                   battVheight    = 42,       -- battery voltage/current frame height
-                   battCellW      = 60,       -- battery cell rectangle Width
-                   battCellH      = 23,       -- battery cell rectangle Height
-                   battCelldY     = 6,        -- battery cell rectangle vertical offset
-                   curColOffset   = 20,       -- current column offset for full page zone 
-                   noTelFrameT    = 3,        -- thickness of no telemetry frame
-                 }
+          -- telemetry
+          LiPoSensor     = nil,        -- FrSky FLVS
+          CurrentSensor  = nil,        -- FrSky FAS40/80
+          VoltageSensor  = nil,        -- FrSky FAS40/80
+          -- LiPo Values
+          cellsCount     = nil,
+          cellsValueArr  = {},
+          cellValue      = nil,
+          cellMinValue   = nil,                   
+          -- VFAS Values
+          voltage        = nil,
+          VFAScells      = 3,
+          current        = nil,
+          currMax        = 0,          -- battery current X.XA
+          batPow         = nil,        -- battery Power
+          batPowMax      = 0,          -- battery Power Max                      
+          lastVoltage    = 0,          -- last battery votage when we lose telemetry
+          BatType        = 0,
+          batCapmAh      = 0,
+          FlightReset    = 0,          -- should be zero
+          -- config
+          color1         = lcd.RGB(0xEA, 0x5E, 0x00),   
+          transtable     = transtable,
+          -- status
+          initPending    = true,
+          runBgTasks     = false,
+          -- layout
+          batteryIcon    = nil,      -- empty battery icon
+          screenHeight   = nil,
+          screenWidth    = nil, 
+          zoneHeight     = nil,
+          zoneWidth      = nil,
+          battX          = nil,      -- battery large icon X position update in CheckEnvironment()
+          battY          = nil,      -- battery large icon Y position update in CheckEnvironment()
+          battW          = nil,      -- battery large icon Width      update in CheckEnvironment()
+          battH          = nil,      -- battery large icon Height     update in CheckEnvironment()
+          battfdX        = nil,      -- battery fill dX               update in CheckEnvironment()
+          battfdY        = nil,      -- battery fill dY               update in CheckEnvironment()
+          battfW         = nil,      -- battery fill Width            update in CheckEnvironment()
+          battfH         = nil,      -- battery fill Height           update in CheckEnvironment()
+          screenType     = "",
+          flash          = 0,        -- flash voltage rectangle YELLOW / RED if telemetry lost
+          last_time      = 0,
+          battVwidth     = 130,      -- battery voltage/current frame width
+          battCFSwidth   = 200,      -- battery current full frame width
+          battVheight    = 42,       -- battery voltage/current frame height
+          battCellW      = 60,       -- battery cell rectangle Width
+          battCellH      = 23,       -- battery cell rectangle Height
+          battCelldY     = 6,        -- battery cell rectangle vertical offset
+          curColOffset   = 20,       -- current column offset for full page zone 
+          noTelFrameT    = 3,        -- thickness of no telemetry frame
+        }
 end
 -- #################################################################### 
 -- *  paint                                                           #

@@ -65,9 +65,9 @@ local libs    = { menuLib  = nil,
 local g_libInitDone    = false
  
  colors = {
-    white            = WHITE,
-    black            = BLACK,
-    red              = RED,
+    white            = COLOR_WHITE,
+    black            = COLOR_BLACK,
+    red              = COLOR_RED,
     panelBackground  = lcd.RGB(0,   160, 224),
   }
 -- #############

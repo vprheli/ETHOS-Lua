@@ -61,12 +61,6 @@ function batLib.CheckEnvironment (widget)
   if widget.screenHeight == nil or (w ~= widget.zoneWidth and h ~= widget.zoneHeight) then
     -- environment changed
     conf.darkMode = lcd.darkMode() 	
---    local color = lcd.themeColor (THEME_DEFAULT_COLOR)  -- 251723775 cerna /  251681451 bila
---    if color == 251723775 then
---      widget.conf.darkMode = BLACK
---    else
---      widget.conf.darkMode = WHITE
---    end
 
     local version = system.getVersion()
     widget.screenHeight = version.lcdHeight
@@ -199,7 +193,7 @@ function batLib.readSensors(widget)
     
     -- D E B U G --
 --    widget.cellValue        = 15.34
---    --widget.cellsCount       = 4
+--    widget.cellsCount       = 4
 --    widget.cellsValueArr[0] = 3.83
 --    widget.cellsValueArr[1] = 3.84
 --    widget.cellsValueArr[2] = 3.84
@@ -249,8 +243,6 @@ function batLib.calcCellMin(widget)
   local calMinIdx  = nil
   local cells4sort = {}
   
-  -- cellsCount = 6
-
   for i = 1, #widget.cellsValueArr do
     cells4sort[i] = widget.cellsValueArr[i]
   end
@@ -297,18 +289,18 @@ function batLib.paintBattery (widget)
     if conf.telemetryState == 0 then
       if widget.flash == 0 then
         widget.flash = 1
-        lcd.color(YELLOW)
+        lcd.color(COLOR_YELLOW)
       else
         widget.flash = 0
-        lcd.color(RED)
+        lcd.color(COLOR_RED)
       end
     else
-      lcd.color(YELLOW)
+      lcd.color(COLOR_YELLOW)
     end
     lcd.drawFilledRectangle (x, y, widget.battVwidth, widget.battVheight)
     
     lcd.font(FONT_XXL)
-    lcd.color(BLACK)
+    lcd.color(COLOR_BLACK)
     -- hold last value even we lose telemetry
     --lcd.drawText(x + widget.battVwidth / 2, y, formatNumber(voltage, "%.1f") .. "V", TEXT_CENTERED)
 
@@ -332,10 +324,10 @@ function batLib.paintBattery (widget)
         local y       = widget.battY
         local current = widget.current
         
-        lcd.color(BLUE)
+        lcd.color(COLOR_BLUE)
         lcd.drawFilledRectangle (x, y, widget.battCFSwidth, widget.battVheight) 
         lcd.font(FONT_XXL)
-        lcd.color(WHITE)
+        lcd.color(COLOR_WHITE)
         if conf.telemetryState == 1 then
           lcd.drawText(x + widget.battCFSwidth / 2, y, formatNumber(current, "%.1f") .. "A", TEXT_CENTERED)
         else
@@ -373,10 +365,10 @@ function batLib.paintBattery (widget)
           y = y + cellsCount * (widget.battCellH + widget.battCelldY)
         end       
         
-        lcd.color(BLUE)
+        lcd.color(COLOR_BLUE)
         lcd.drawFilledRectangle (x, y, widget.battVwidth, widget.battVheight)    
         lcd.font(FONT_XXL)
-        lcd.color(WHITE)
+        lcd.color(COLOR_WHITE)
         if conf.telemetryState == 1 then
           lcd.drawText(x + widget.battVwidth / 2, y, formatNumber(current, "%.1f") .. "A", TEXT_CENTERED)
         else
@@ -394,7 +386,7 @@ function batLib.paintBattery (widget)
     x = widget.battX + widget.battW / 2
     y = 430
     y = widget.battY + widget.battH
-    lcd.color(WHITE)
+    lcd.color(COLOR_WHITE)
     lcd.font(FONT_XL)
     if conf.telemetryState == 1 then    
       lcd.drawText(x, y, formatNumber(percentage, "%.0f") .. "%", TEXT_CENTERED)
@@ -459,7 +451,7 @@ function batLib.paintBattery (widget)
         markLowest = (calMinValue ~= nil and calMinValue == widget.cellsValueArr[i]) and true or false
         
         -- draw cell value
-        lcd.color(markLowest and YELLOW or WHITE)
+        lcd.color(markLowest and COLOR_YELLOW or COLOR_WHITE)
         if conf.telemetryState == 1 then
           lcd.drawText(x + widget.battCellW + 10, y + dY, formatNumber(widget.cellsValueArr[i], "%.02f") .. " V", TEXT_LEFT)
         else
@@ -468,7 +460,7 @@ function batLib.paintBattery (widget)
         end
         
         -- draw lowest cell(s) frame
-        lcd.color(WHITE)
+        lcd.color(COLOR_WHITE)
         if markLowest == true and conf.telemetryState == 1 then
           lcd.drawRectangle(x - 4, y + dY - 4, widget.battVwidth + 8, widget.battCellH + 8) 
         end
@@ -486,7 +478,7 @@ function batLib.paintBattery (widget)
     h = widget.battfH - (100 - percentage) * 0.01 * widget.battfH
     color = getPercentColor (percentage)
     
-    lcd.color(conf.telemetryState == 1 and lcd.color(color) or lcd.color(BLACK))
+    lcd.color(conf.telemetryState == 1 and lcd.color(color) or lcd.color(COLOR_BLACK))
     lcd.drawFilledRectangle(x, y, w, h)
   end  
   
@@ -519,11 +511,11 @@ function batLib.paint (widget)
   libs.batLib.CheckEnvironment (widget)
   libs.batLib.readSensors(widget)
   -- force black background
-  lcd.color(BLACK)
+  lcd.color(COLOR_BLACK)
   lcd.drawFilledRectangle(0, 0, widget.zoneWidth, widget.zoneHeight)  
   -- telemetry lost => red zone frame
   if conf.telemetryState == 0 then
-    lcd.color(RED)
+    lcd.color(COLOR_RED)
     lcd.drawRectangle(0, 0, widget.zoneWidth, widget.zoneHeight, widget.noTelFrameT)  
   end
     

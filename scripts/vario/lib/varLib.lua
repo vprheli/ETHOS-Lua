@@ -40,12 +40,6 @@ local varLib      = {}
 local conf        = nil
 local libs        = nil
 
---  colors = {
---    white            = WHITE,
---    black            = BLACK,
---    red              = RED,
---    panelBackground  = lcd.RGB(0,   160, 224),
---  }
 -- #################################################################### 
 -- # varLib.init                                                      #
 -- ####################################################################
