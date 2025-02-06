@@ -28,3 +28,12 @@ The widget displays the stopwatch reading in digital form on a seven-segment dis
 
 ![Digital-full](https://github.com/user-attachments/assets/500ffb62-e5ed-4706-8648-adef7c70764a)
 ![Digital-half](https://github.com/user-attachments/assets/ba68800a-61f7-405e-a4cb-f245a9df6355)
+
+<H2>ETHOS h4lgpsmap (fixed and modified) widget</H2>
+I also modified the unsupported H4LGPSMAP widget that displays the map and the model's position using the GPS sensor.
+This version supports up to 32 saved maps. The map is automatically loaded when the model flies into the specified GPS range of the map.
+This allows you to use multiple maps of different scales for the same area. If the model leaves the detailed map, a map with a wider area is automatically displayed. In this case, it is only necessary that the more detailed map has a lower number than the map with a larger area.
+The second option is to create tiles from the maps of the same magnification and thus cover larger areas.
+Multilingual support.
+
+![h4lgpsmap](https://github.com/user-attachments/assets/ec95bcae-51b3-4030-8903-9fc5a36da1ee)
