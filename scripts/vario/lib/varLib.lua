@@ -288,7 +288,7 @@ function varLib.paintVario (widget)
   end
 end
 -- #################################################################### 
--- # batLib.paint                                                     #
+-- # varLib.paint                                                     #
 -- ####################################################################
 function varLib.paint (widget)
   libs.batLib.CheckEnvironment (widget)
@@ -313,12 +313,12 @@ function varLib.paint (widget)
     lcd.drawRectangle(0, 0, widget.zoneWidth, widget.zoneHeight, widget.noTelFrameT)  
   end
   
-  if conf.simulation == true then
-    lcd.font(FONT_S)
-    lcd.color(conf.colors.red)
-    text_w, text_h = lcd.getTextSize("")
-    lcd.drawText(widget.zoneWidth - widget.frameX - widget.noTelFrameT, widget.zoneHeight - text_h - widget.noTelFrameT, widget.zoneWidth.."x"..widget.zoneHeight, TEXT_RIGHT)
-  end
+--  if conf.simulation == true then
+--    lcd.font(FONT_S)
+--    lcd.color(conf.colors.red)
+--    text_w, text_h = lcd.getTextSize("")
+--    lcd.drawText(widget.zoneWidth - widget.frameX - widget.noTelFrameT, widget.zoneHeight - text_h - widget.noTelFrameT, widget.zoneWidth.."x"..widget.zoneHeight, TEXT_RIGHT)
+--  end
 end
 
 return varLib

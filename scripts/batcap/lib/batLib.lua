@@ -363,17 +363,16 @@ function batLib.paintBattery (widget)
         
         if (widget.LipoSensor ~= nil) and (cellsCount <= 5) then
           y = y + cellsCount * (widget.battCellH + widget.battCelldY)
+          lcd.color(COLOR_BLUE)
+          lcd.drawFilledRectangle (x, y, widget.battVwidth, widget.battVheight)    
+          lcd.font(FONT_XXL)
+          lcd.color(COLOR_WHITE)
+          if conf.telemetryState == 1 then
+            lcd.drawText(x + widget.battVwidth / 2, y, formatNumber(current, "%.1f") .. "A", TEXT_CENTERED)
+          else
+            lcd.drawText(x + widget.battVwidth / 2, y, "---", TEXT_CENTERED)
+          end          
         end       
-        
-        lcd.color(COLOR_BLUE)
-        lcd.drawFilledRectangle (x, y, widget.battVwidth, widget.battVheight)    
-        lcd.font(FONT_XXL)
-        lcd.color(COLOR_WHITE)
-        if conf.telemetryState == 1 then
-          lcd.drawText(x + widget.battVwidth / 2, y, formatNumber(current, "%.1f") .. "A", TEXT_CENTERED)
-        else
-          lcd.drawText(x + widget.battVwidth / 2, y, "---", TEXT_CENTERED)
-        end
       end
     end
   end
@@ -589,12 +588,12 @@ function batLib.paint (widget)
     libs.utils.printError (widget, "wgtsmall")
   end
   
-  if conf.simulation == true then
-    lcd.font(FONT_S)
-    lcd.color(widget.color1)
-    text_w, text_h = lcd.getTextSize("")
-    lcd.drawText(widget.zoneWidth - widget.noTelFrameT, widget.zoneHeight - text_h - widget.noTelFrameT, widget.zoneWidth.."x"..widget.zoneHeight, TEXT_RIGHT)
-  end
+--  if conf.simulation == true then
+--    lcd.font(FONT_S)
+--    lcd.color(widget.color1)
+--    text_w, text_h = lcd.getTextSize("")
+--    lcd.drawText(widget.zoneWidth - widget.noTelFrameT, widget.zoneHeight - text_h - widget.noTelFrameT, widget.zoneWidth.."x"..widget.zoneHeight, TEXT_RIGHT)
+--  end
 end
 
 return batLib

@@ -23,13 +23,14 @@
 --           ----------  ------- -------- ------------------------------------
 --           15.01.2025  0.0.1   VPRHELI  initial version
 --           27.01.2025  1.0.0   VPRHELI  minor changes
+--           06.02.2025  1.0.2   VPRHELI  current value and liPo cell fix
 -- =============================================================================
 --
 -- TODO
 -- carbon background - taken from the net and height according to the lowest widget - I would name it carbon.bmp
 -- white background
 
-local version           = "v1.0.1"
+local version           = "v1.0.2"
 local environment       = system.getVersion()
 -- multilanguage text table
 -- if Yo want add your supported mother language, extend table and let me know, I will push it in the Git
