@@ -23,6 +23,7 @@
 --                 2022  1.0.7   Björn    initial version
 --           28.01.2025  1.0.8   VPRHELI  fixed and modified version
 --           02.02.2025  2.0.0   VPRHELI  Autoselect map
+--           07.02.2025  2.0.1   VPRHELI  ETHOS 1.6.1 fixed 1.6.0 #4941 bug in GPS coordinates
 -- =============================================================================
 -- The modification of the original, no longer supported widget, allows you to use up to 32 map sources. 
 -- The widget itself selects the necessary map according to GPS coordinates. 
@@ -1084,8 +1085,8 @@ function ReadSensors(widget)
     local version = system.getVersion()
     if version.simulation == true then
       -- Lipence model position
-      Lat_Value  = 49.9830972 * 10
-      Long_Value = 14.3772672 * 10
+      Lat_Value  = 49.9830972
+      Long_Value = 14.3772672
     end
    
     local GPSState = widget.GPSSource:state()
@@ -1096,8 +1097,8 @@ function ReadSensors(widget)
       Long_Value = 0
     end
     if widget.GPSLAT ~= Lat_Value or widget.GPSLONG ~= Long_Value then
-      widget.GPSLAT  = Lat_Value / 10
-      widget.GPSLONG = Long_Value / 10
+      widget.GPSLAT  = Lat_Value
+      widget.GPSLONG = Long_Value
     end
     if GPSState == true then
       widget.GPSLATlastValid  = widget.GPSLAT     -- store for signal lost
