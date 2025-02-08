@@ -25,6 +25,9 @@
 --           02.02.2025  2.0.0   VPRHELI  Autoselect map
 --           07.02.2025  2.0.1   VPRHELI  ETHOS 1.6.1 fixed 1.6.0 #4941 bug in GPS coordinates
 -- =============================================================================
+-- 
+--    From version HL4GPSMAP 2.0.1 onwards, use at least ETHOS 1.6.1
+--
 -- The modification of the original, no longer supported widget, allows you to use up to 32 map sources. 
 -- The widget itself selects the necessary map according to GPS coordinates. 
 -- This allows you to save several maps of different scales for one area, the airport. 
@@ -1097,7 +1100,7 @@ function ReadSensors(widget)
       Long_Value = 0
     end
     if widget.GPSLAT ~= Lat_Value or widget.GPSLONG ~= Long_Value then
-      widget.GPSLAT  = Lat_Value
+      widget.GPSLAT  = Lat_Value       -- ETHOS 1.6.1 appied issue #4941 of ETHOS 1.6.0
       widget.GPSLONG = Long_Value
     end
     if GPSState == true then
