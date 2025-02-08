@@ -21,6 +21,7 @@
 --           ----------  ------- -------- ------------------------------------
 --           15.01.2025  0.0.1   VPRHELI  initial version
 --           27.01.2025  1.0.0   VPRHELI  minor changes
+--           07.02.2025  1.0.2   VPRHELI  LiFePo4 name change
 -- =============================================================================
 
 local menuLib     = {}
@@ -54,7 +55,7 @@ function menuLib.configure(widget)
   local battery_types = { { "Lipo",    0 },
                           { "HV Lipo", 1 },
                           { "Lion",    2 },
-                          { "LiFe",    3 }
+                          { "LiFePO4", 3 }
                         }
   local function get_battery_type() return widget.BatType end
   local function set_battery_type(type) widget.BatType = type end

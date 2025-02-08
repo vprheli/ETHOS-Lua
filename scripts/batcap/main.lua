@@ -23,7 +23,7 @@
 --           ----------  ------- -------- ------------------------------------
 --           15.01.2025  0.0.1   VPRHELI  initial version
 --           27.01.2025  1.0.0   VPRHELI  minor changes
---           06.02.2025  1.0.2   VPRHELI  current value and liPo cell fix
+--           07.02.2025  1.0.2   VPRHELI  current value and liPo cell fix
 -- =============================================================================
 --
 -- TODO
@@ -32,56 +32,14 @@
 
 local version           = "v1.0.2"
 local environment       = system.getVersion()
--- multilanguage text table
--- if Yo want add your supported mother language, extend table and let me know, I will push it in the Git
-local transtable        = { en = { wgname          = "Battery Capacity",
-                                   menuname        = "Battery Capacity",
-                                   battype         = "Battery Type",
-                                   LiPo            = "Lipo Sensor",
-                                   VoltageSensor   = "Voltage Sensor",
-                                   VFAScells       = "Battery Cells Count",
-                                   CurrSensor      = "Current Sensor",
-                                   curmax          = "Current / Max",
-                                   wgtsmall        = "Small Widget",
-                                   badSensor       = "Bad sensor type",
-                                   noTelemetry     = "No Telemetry",
-                                   color1          = "Select color",
-                                 },
-                            cz = {
-                                   wgname          = "Kapacita baterie",
-                                   menuname        = "Kapacita baterie",
-                                   battype         = "Typ baterie",
-                                   LiPo            = "Lipo senzor",
-                                   VoltageSensor   = "Senzor napětí",
-                                   VFAScells       = "Počet článků baterie",
-                                   CurrSensor      = "Senzor proudu",
-                                   curmax          = "Aktuální / Max",
-                                   wgtsmall        = "Málo místa",
-                                   badSensor       = "Špatně zvolený senzor",
-                                   noTelemetry     = "Chybí telemetrie",
-                                   color1          = "Vyberte barvu",
-                                 },
-                            de = {
-                                   wgname          = "Batteriekapazitat",
-                                   menuname        = "Batteriekapazität",
-                                   battype         = "Akku-Typ",
-                                   LiPo            = "Lipo-Sensor",
-                                   VoltageSensor   = "Spannungssensor",
-                                   VFAScells       = "Anzahl der Batteriezellen",
-                                   CurrSensor      = "Stromsensor",
-                                   curmax          = "Aktuell / Max",
-                                   wgtsmall        = "Kleines Widget",
-                                   badSensor       = "Schlechter Sensortyp",
-                                   noTelemetry     = "Keine Telemetrie",
-                                   color1          = "Wähle Farbe",
-                                 }                                 
-                          }
-                          
-local utils   = {}
-local libs    = { menuLib  = nil,
-                  batLib   = nil,
-                  utils    = nil}
-local g_libInitDone    = false
+-- load translate table from external file
+local tableFile  = assert(loadfile("/scripts/batcap/translate.lua"))()
+local transtable = tableFile.transtable
+local utils      = {}
+local libs       = { menuLib  = nil,
+                     batLib   = nil,
+                     utils    = nil}
+local g_libInitDone = false
 
 -- #############
 -- # conf      #
@@ -92,6 +50,7 @@ local g_libInitDone    = false
                 basePath       = "/scripts/batcap/",
                 libFolder      = "lib/",
                 imgFolder      = "img/",
+                modelName      = nil,
                 transtable     = transtable,
                 telemetryState = nil,
                 lastTelState   = nil,       -- last telemetry state
@@ -242,27 +201,6 @@ local function read(widget)
   widget.CurrentSensor            = storage.read("CurrentSensor")
   widget.color1                   = storage.read("color1")
   
---  print ("")
---  if widget.LipoSensor == nil then
---    print ("### read ### widget.LipoSensor     : nil")
---  else
---    print ("### read ### widget.LipoSensor     : " .. widget.LipoSensor:name())    
---  end
---  if widget.VoltageSensor == nil then
---      print ("### read ### widget.VoltageSensor  : nil")
---  else
---    print ("### read ### widget.VoltageSensor  : " .. widget.VoltageSensor:name())    
---  end
---  if widget.CurrentSensor == nil then
---      print ("### read ### widget.CurrentSensor  : nil")
---  else
---    print ("### read ### widget.CurrentSensor  : " .. widget.CurrentSensor:name()) 
---  end
---  if widget.VFAScells == nil then
---      print ("### read ### widget.VFAScells      : nil")
---  else
---    print ("### read ### widget.VFAScells      : " .. widget.VFAScells)    
---  end
 	return true
 end
 -- #################################################################### 
@@ -271,29 +209,6 @@ end
 -- #################################################################### 
 local function write(widget)
   --print ("### function write()")
-
---  print ("")
---  if widget.LipoSensor == nil then
---      print ("### write ### widget.LipoSensor    : nil")
---  else
---    print ("### write ### widget.LipoSensor    : " .. widget.LipoSensor:name())    
---  end
---  if widget.VoltageSensor == nil then
---      print ("### write ### widget.VoltageSensor : nil")
---  else
---    print ("### write ### widget.VoltageSensor : " .. widget.VoltageSensor:name())    
---  end
---  if widget.CurrentSensor == nil then
---      print ("### write ### widget.CurrentSensor : nil")
---  else
---    print ("### write ### widget.CurrentSensor : " .. widget.CurrentSensor:name()) 
---  end
---  if widget.VFAScells == nil then
---      print ("### write ### widget.VFAScells     : nil")
---  else
---    print ("### write ### widget.VFAScells     : " .. widget.VFAScells)    
---  end
-  
   storage.write("BatType"       , widget.BatType)  
 	storage.write("batCapmAh"     , widget.batCapmAh)
 	storage.write("LipoSensor"    , widget.LipoSensor)  
@@ -324,6 +239,7 @@ local function wakeup(widget)
   
   if widget.initPending == true then
     -- TODO if necesssary
+    widget.modelName   = model.name()    
     widget.runBgTasks  = true
     widget.initPending = false
   end  
