@@ -14,7 +14,6 @@
 -- #########################################################################
 --
 -- battery icon is inspired by Zavionix Bat/Cells "V2.1.4"
-
 -- =============================================================================
 -- ETHOS battery widget
 -- File:   : main.lua
@@ -24,13 +23,14 @@
 --           15.01.2025  0.0.1   VPRHELI  initial version
 --           27.01.2025  1.0.0   VPRHELI  minor changes
 --           07.02.2025  1.0.2   VPRHELI  current value and liPo cell fix
+--           09.02.2025  1.0.3   VPRHELI  telemetry on LiPo senzor on, no battery connection fix
 -- =============================================================================
 --
 -- TODO
 -- carbon background - taken from the net and height according to the lowest widget - I would name it carbon.bmp
 -- white background
 
-local version           = "v1.0.2"
+local version           = "v1.0.3"
 local environment       = system.getVersion()
 -- load translate table from external file
 local tableFile  = assert(loadfile("/scripts/batcap/translate.lua"))()
@@ -51,6 +51,7 @@ local g_libInitDone = false
                 libFolder      = "lib/",
                 imgFolder      = "img/",
                 modelName      = nil,
+                transmitter    = nil,
                 transtable     = transtable,
                 telemetryState = nil,
                 lastTelState   = nil,       -- last telemetry state
@@ -239,7 +240,6 @@ local function wakeup(widget)
   
   if widget.initPending == true then
     -- TODO if necesssary
-    widget.modelName   = model.name()    
     widget.runBgTasks  = true
     widget.initPending = false
   end  

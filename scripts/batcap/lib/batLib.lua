@@ -67,6 +67,8 @@ function batLib.CheckEnvironment (widget)
     widget.screenHeight = version.lcdHeight
     widget.screenWidth  = version.lcdWidth
     conf.simulation     = version.simulation
+    conf.transmitter    = version.board
+    conf.modelName      = model.name()
     
     widget.zoneHeight = h
     widget.zoneWidth  = w
@@ -169,14 +171,19 @@ function batLib.readSensors(widget)
   if conf.telemetryState == 1 then
     local sensor = widget.LipoSensor
     -- LiPo
-    if sensor ~= nil and sensor:name() == "LiPo" then
+    if sensor ~= nil then
       widget.cellsCount = sensor:value ({options=OPTION_CELLS_COUNT})
       -- read voltage of all connected cells
-      for i = 1, widget.cellsCount do
-        widget.cellsValueArr[i] = sensor:value({options=OPTION_CELL_INDEX(i)})
+      if widget.cellsCount ~= nil then
+        for i = 1, widget.cellsCount do
+          widget.cellsValueArr[i] = sensor:value({options=OPTION_CELL_INDEX(i)})
+        end
+        widget.cellValue    = sensor:value()
+        widget.cellMinValue = sensor:value ({options=OPTION_CELL_LOWEST})
+      else
+        local count = #widget.cellsValueArr
+        for i = 0, count do widget.cellsValueArr[i] = nil end
       end
-      widget.cellValue    = sensor:value()
-      widget.cellMinValue = sensor:value ({options=OPTION_CELL_LOWEST})
     else
       widget.cellValue    = nil
       widget.cellMinValue = nil
@@ -226,12 +233,12 @@ function batLib.readSensors(widget)
       end
     end
   
-   if widget.FlightReset == 1 then
-     widget.FlightReset = 0
-     widget.batPowMax   = 0
-     widget.currMax     = 0     
-    --print("#### Flight Reset ####")
-  end
+    if widget.FlightReset == 1 then
+      widget.FlightReset = 0
+      widget.batPowMax   = 0
+      widget.currMax     = 0     
+      --print("#### Flight Reset ####")
+    end
     --libs.utils.dumpSensorLiPo (sensor)
   end
 end
@@ -296,7 +303,11 @@ function batLib.paintBattery (widget)
         lcd.color(COLOR_RED)
       end
     else
-      lcd.color(COLOR_YELLOW)
+      if widget.LipoSensor:state() == false then
+        lcd.color(COLOR_RED)
+      else
+        lcd.color(COLOR_YELLOW)
+      end
     end
     lcd.drawFilledRectangle (x, y, widget.battVwidth, widget.battVheight)
     
@@ -305,7 +316,7 @@ function batLib.paintBattery (widget)
     -- hold last value even we lose telemetry
     --lcd.drawText(x + widget.battVwidth / 2, y, formatNumber(voltage, "%.1f") .. "V", TEXT_CENTERED)
 
-    if conf.telemetryState == 1 then
+    if conf.telemetryState == 1 and voltage ~= nil then
       lcd.drawText(x + widget.battVwidth / 2, y, formatNumber(voltage, "%.1f") .. "V", TEXT_CENTERED)
     else
       lcd.drawText(x + widget.battVwidth / 2, y, formatNumber(widget.lastVoltage, "%.1f") .. "V", TEXT_CENTERED)
@@ -399,7 +410,7 @@ function batLib.paintBattery (widget)
   -- * getBatteryPercentage       paintBattery() local  *
   -- ********************************************************
   local function getBatteryPercentage(voltage, voltageRange, cellCount)
-    if conf.telemetryState == 1 then
+    if conf.telemetryState == 1 and voltage ~= nil then
       for _, entry in ipairs(voltageRange) do
           local voltageEntry = entry[1] * cellCount
           if voltageEntry >= voltage then
@@ -453,6 +464,9 @@ function batLib.paintBattery (widget)
         -- draw cell value
         lcd.color(markLowest and COLOR_YELLOW or COLOR_WHITE)
         if conf.telemetryState == 1 then
+          if widget.LipoSensor:state() == false then
+            lcd.color(COLOR_RED)        -- sensor connected but battery disconnected
+          end
           lcd.drawText(x + widget.battCellW + 10, y + dY, formatNumber(widget.cellsValueArr[i], "%.02f") .. " V", TEXT_LEFT)
         else
           lcd.color(lcd.RGB(128, 128, 128))
