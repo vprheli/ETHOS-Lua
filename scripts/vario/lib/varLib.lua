@@ -21,6 +21,7 @@
 --           ----------  ------- -------- ------------------------------------
 --           23.01.2025  0.0.1   VPRHELI  initial version
 --           27.01.2025  1.0.0   VPRHELI  minor changes
+--           16.02.2025  1.0.1   VPRHELI  removing opacity bitmaps, use opacity color
 -- =============================================================================
 -- Snsor IDs
 -- https://openrcforums.com/forum/viewtopic.php?t=5701
@@ -141,12 +142,6 @@ function varLib.paintVario (widget)
     return string.format(format, value)
   end
   -- ********************************************************
-  -- * getOpacityImg                paintVario() local  *
-  -- ********************************************************
-  local function getOpacityImg(h)
-    return libs.utils.loadBitmap(string.format("frame-60x%d.png", h))
-  end
-  -- ********************************************************
   -- * drawAltitudeScale            paintVario() local  *
   -- ********************************************************
   local function drawAltitudeScale(widget)
@@ -162,7 +157,8 @@ function varLib.paintVario (widget)
     end
     -- gray background
     -- 30% opacity of BLACK
-    lcd.drawBitmap(x, y, getOpacityImg(h), widget.frameX, h)
+    lcd.color(lcd.RGB(0,0,0,0.3))
+    lcd.drawFilledRectangle(x, y, 60, h)
     
     lcd.color(conf.colors.white)
     lcd.pen(SOLID)
@@ -224,7 +220,8 @@ function varLib.paintVario (widget)
     end
     -- gray background    
     -- 30% opacity of BLACK
-    lcd.drawBitmap(x - widget.frameX, y, getOpacityImg(h), widget.frameX, h)
+    lcd.color(lcd.RGB(0,0,0,0.3))
+    lcd.drawFilledRectangle(x - widget.frameX, y, widget.frameX, h)
     
     lcd.color(conf.colors.white)        
     lcd.font(FONT_L)

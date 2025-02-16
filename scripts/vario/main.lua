@@ -21,11 +21,12 @@
 --           ----------  ------- -------- ------------------------------------
 --           23.01.2025  0.0.1   VPRHELI  initial version
 --           27.01.2025  1.0.0   VPRHELI  minor changes
+--           16.02.2025  1.0.1   VPRHELI  removing opacity bitmaps, use opacity color
 -- =============================================================================
 --
 -- TODO
 
-local version           = "v1.0.0"
+local version           = "v1.0.1"
 local environment       = system.getVersion()
 -- multilanguage text table
 -- if Yo want add your supported mother language, extend table and let me know, I will push it in the Git
