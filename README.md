@@ -41,6 +41,6 @@ Multilingual support.
 ![h4lgpsmap](https://github.com/user-attachments/assets/ec95bcae-51b3-4030-8903-9fc5a36da1ee)
 
 <H2>ETHOS ShowAll widget</H2>
-Modification of the OpenTx script showing the states of the controls on the X20 transmitters.
+Modification of the OpenTx script showing the states of the controls on the X20, X18, X12 and X10 transmitters.
 
-![ShowAll](https://github.com/user-attachments/assets/fd7d764c-e398-4218-b32d-a24c7e40dd58)
+![ShowAll-X20-small](https://github.com/user-attachments/assets/9bbd08fd-a531-4158-aea4-754392e2dd96)
