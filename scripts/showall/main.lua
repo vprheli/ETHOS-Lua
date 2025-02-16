@@ -20,23 +20,25 @@
 -- History : Date        Version Author   Comment
 --           ----------  ------- -------- ------------------------------------
 --           06.02.2025  1.0.0   VPRHELI  initial version
---           15.02.2025  1.0.1   VPRHELI  full Xěé HW, X18 support
+--           15.02.2025  1.0.1   VPRHELI  full X20 HW, X18 support
+--           16.02.2025  1.0.2   VPRHELI  Flight mode, TX battery, RSSI
 -- =============================================================================
--- 2025-01-18 by RNDr.Vladimir Pribyl
 --
--- TODO different stick MODE
---      letove mody
+-- Comment: Code is optimized for X20/X18 single zone (not full screen)
+--                                X10/X12 works on full screen only
+
+-- TODO different channel order in in drawSticks()
 
 -- transmitter hardware
 --
 -- transmitter   screen  switches   trims   sliders   function buttons    gyro          gps
 -- X20          800x480   SA-SH +4    6        5           6              yes
--- X18          800x480   SA-SH +2   4+2       4           6              yes
--- X14 TWIN     640x480   SA-SF + 2   4        4           4              yes (X14S)
+-- X18S         480x320   SA-SH +2   4+2       4           6              yes
+-- X14 TWIN     640x360   SA-SF + 2   4        4           4              yes (X14S)
 -- X12 HORUS    480x272   SA-SH       6        4           6              yes           yes
 -- X10 HORUS    480x272   SA-SH       4        2  
 
-local version           = "v1.0.1"
+local version           = "v1.0.2"
 local transtable        = { en = { wgname          = "Showall",
                                    frontColor      = "Select front color",
                                    backColor       = "Select background color",
@@ -55,8 +57,11 @@ local transtable        = { en = { wgname          = "Showall",
                           }
 -- ========= LOCAL VARIABLES =============
 local g_locale      = system.getLocale()
+local LSmax         = nil
 local idGyroX       = nil
 local idGyroY       = nil
+local idRSSI        = nil
+local idTxBatt      = nil
 local arrChannels   = {}
 local arrSwitches   = {}
 local arrLogics     = {}
@@ -132,7 +137,8 @@ local function GetIDs (widget)
     --print("### arrTrims : " .. arrTrims[i]:name() .. "  " .. arrTrims[i]:value())
   end
     -- logic switches
-  for i = 0, 2 do
+  LSmax = widget.radio == 20 and 40 or 20
+  for i = 0, LSmax do
     ID = system.getSource({category=CATEGORY_LOGIC_SWITCH, member=i})
     if ID:name() == "---" then
       break
@@ -162,6 +168,12 @@ local function GetIDs (widget)
   -- internal gyro
   idGyroX = system.getSource({category=CATEGORY_GYRO, member=0})
   idGyroY = system.getSource({category=CATEGORY_GYRO, member=1})
+  
+  -- essential values
+  -- RSSI signal
+  idRSSI   = system.getSource("RSSI")
+  idTxBatt = system.getSource({category=CATEGORY_SYSTEM, member=MAIN_VOLTAGE})
+
 end
 
 -- ####################################################################
@@ -180,6 +192,8 @@ local function create()
               colorTxt       = lcd.RGB(  0,   0,   0),
               colorLabel     = lcd.RGB(128, 128, 128),
               colorBkg       = lcd.RGB(  0, 192, 192),
+              fontS          = nil,
+              fontSTD        = nil,
               textSheight    = nil,
               textSTDheight  = nil,
               -- config
@@ -200,9 +214,10 @@ local function paint(widget)
   -- * drawSliders                       paint() local  *
   -- ********************************************************
   local function drawSliders (widget)
-    local w, h    = lcd.getWindowSize()
-    local x       = 10
-    local markLen = 20
+    local w       = widget.zoneWidth
+    local h       = widget.zoneHeight
+    local x       = widget.radio == 20 and 10 or 5
+    local markLen = widget.radio == 20 and 20 or 10
     local markCnt = 20
     local h0      = h - 40
     local c0      = math.floor (h / 2)
@@ -210,24 +225,25 @@ local function paint(widget)
     local dx, y
     local cl, cr
 
-    local sliderLeft   = 9      -- X20
+    -- slider indexes in the arrSliders[] array
+    local sliderLeft  = 9       -- X20
     local sliderRight = 10      -- X20
     
-    if widget.radio == 18 then  -- X18
+    if widget.radio ~= 20 then  -- X18
       sliderLeft  = 6
       sliderRight = 7
     end
     -- vertical sliders label
-    lcd.font(FONT_S)
+    lcd.font(widget.fontS)
     lcd.color(widget.colorLabel)
-    -- horizontal sliders label
+    -- vertical sliders label
     lcd.drawText (x     + markLen / 2, c0 - markCnt * dy - widget.textSheight, "SL" , TEXT_CENTERED)
     lcd.drawText (w - x - markLen / 2, c0 - markCnt * dy - widget.textSheight, "SR" , TEXT_CENTERED)
 
     lcd.color(widget.colorTxt)
     -- vertical sliders
     for i = 0, markCnt do
-      dx = (i % 20 == 0) and 0 or 4
+      dx = (i % 20 == 0) and 0 or ( widget.radio == 20 and 4 or 2)
       -- left slider
       lcd.drawLine (x + dx, c0 - i * dy, x + markLen - dx, c0 - i * dy)
       lcd.drawLine (x + dx, c0 + i * dy, x + markLen - dx, c0 + i * dy)
@@ -254,8 +270,8 @@ local function paint(widget)
     end
 
     -- horizontal sliders
-    dx = dy
-    cl = 67 + markCnt * dx
+    dx = math.floor (w / 110)
+    cl = markCnt * dx + (widget.radio == 20 and 67 or 35)
     cr = w - cl
     y  = x
 
@@ -325,15 +341,16 @@ local function paint(widget)
   -- * drawVtrim                             paint() local  *
   -- ********************************************************
   local function drawVtrim (widget, id, x, y, label)
-    local w, h     = lcd.getWindowSize()
-    local radius   = 8
+    local w        = widget.zoneWidth
+    local h        = widget.zoneHeight
+    local radius   = (widget.radio == 20 and 8 or 4)
     local markCnt  = 20
     local h0       = h - 40
     local c0       = math.floor (h / 2)
     local dy       = math.floor (h0 / 40)
 
     -- trim label
-    lcd.font(FONT_S)
+    lcd.font(widget.fontS)
     lcd.color(widget.colorLabel)
     lcd.drawText (x, c0 - markCnt * dy - widget.textSheight, label, TEXT_CENTERED)
 
@@ -346,7 +363,8 @@ local function paint(widget)
     lcd.color(COLOR_RED)
     local val = arrTrims[id]:value()             -- left trim - elevator (MODE 1)
     local pos = markCnt * dy * val /256
-    lcd.drawFilledRectangle (x - 10, c0 - dy - pos, 21, 2 * dy + 1)
+    local offset = (widget.radio == 20 and 10 or 6)
+    lcd.drawFilledRectangle (x - offset, c0 - dy - pos, 2 * offset + 1, 2 * dy + 1)
     if val == 0 then      -- center slider
       lcd.color(COLOR_WHITE)
       lcd.drawLine (x - 8, c0 - 2, x + 8, c0 - 2)
@@ -357,15 +375,16 @@ local function paint(widget)
   -- * drawHtrim                             paint() local  *
   -- ********************************************************
   local function drawHtrim (widget, id, x, y, label, labelPos)
-    local w, h     = lcd.getWindowSize()
-    local radius   = 8
+    local w        = widget.zoneWidth
+    local h        = widget.zoneHeight
+    local radius   = (widget.radio == 20 and 8 or 4)
     local markCnt  = 20    
     local h0       = h - 40
     local c0       = math.floor (h / 2)
-    local dx       = math.floor (h0 / 40)
+    local dx       = math.floor (w / 110) --math.floor (h0 / 40)
 
     -- trim label
-    lcd.font(FONT_S)
+    lcd.font(widget.fontS)
     lcd.color(widget.colorLabel)
     if labelPos == 0 then
       lcd.drawText (x + 20 * dx + radius, y - radius, label, TEXT_LEFT)
@@ -385,7 +404,8 @@ local function paint(widget)
     lcd.color(COLOR_RED)
     local val = arrTrims[id]:value()             -- left trim - rudder (MODE 1)
     local pos = markCnt * dx * val /256
-    lcd.drawFilledRectangle (x - dx + pos, y - 10, 2 * dx + 1, 21)
+    local offset = (widget.radio == 20 and 10 or 6)    
+    lcd.drawFilledRectangle (x - dx + pos, y - offset, 2 * dx + 1, 2 * offset + 1)
     if val == 0 then      -- center slider
       lcd.color(COLOR_WHITE)
       lcd.drawLine (x - 2, y - 8, x - 2, y + 8)
@@ -396,16 +416,17 @@ local function paint(widget)
   -- * drawVtrimSmall                    paint() local  *
   -- ********************************************************
   local function drawVtrimSmall (widget, id, x, y, label)
-    local w, h     = lcd.getWindowSize()
-    local radius   = 8
+    local w        = widget.zoneWidth
+    local h        = widget.zoneHeight
+    local radius   = (widget.radio == 20 and 8 or 4)
     local markCnt  = 20
-    local h0       = h - 140
+    local h0       = h - (widget.radio == 20 and 140 or math.floor(h / 3))
     local c0       = math.floor (h / 2)
     local dy       = math.floor (h0 / 40)
     local thumb_dY = math.floor ((h - 40) / 40)
 
     -- trim label
-    lcd.font(FONT_S)
+    lcd.font(widget.fontS)
     lcd.color(widget.colorLabel)
     lcd.drawText (x, c0 - markCnt * dy - widget.textSheight, label, TEXT_CENTERED)
 
@@ -419,7 +440,8 @@ local function paint(widget)
     lcd.color(COLOR_RED)
     local val = arrTrims[id]:value()             -- left trim - elevator (MODE 1)
     local pos = markCnt * dy * val /256
-    lcd.drawFilledRectangle (x - 10, c0 - thumb_dY - pos, 21, 2 * thumb_dY + 1)
+    local offset = (widget.radio == 20 and 10 or 6)    
+    lcd.drawFilledRectangle (x - offset, c0 - thumb_dY - pos, 2 * offset + 1, 2 * thumb_dY + 1)
     if val == 0 then      -- center slider
       lcd.color(COLOR_WHITE)
       lcd.drawLine (x - 8, c0 - 2, x + 8, c0 - 2)
@@ -431,22 +453,24 @@ local function paint(widget)
   -- * drawTrims                             paint() local  *
   -- ********************************************************
   local function drawTrims (widget)
-    local w, h     = lcd.getWindowSize()
-    local x        = 45
+    local w        = widget.zoneWidth
+    local h        = widget.zoneHeight
+    local x        = (widget.radio == 20 and 45 or 28)
     local markCnt  = 20
     local h0       = h - 40
     local c0       = math.floor (h / 2)
     local dy       = math.floor (h0 / 40)
+    local stOffset = (widget.radio == 20 and 50 or 35)
     drawVtrim (widget, 1,     x, c0, "T3" )         -- left  trim - elevator (MODE 1)
     drawVtrim (widget, 2, w - x, c0, "T2" )         -- right trim - throttle (MODE 1)
     
-    drawVtrimSmall (widget, 4, w - x - 50, c0, "T5" )
-    drawVtrimSmall (widget, 5, w - x - 25, c0, "T6" )
+    drawVtrimSmall (widget, 4, w - x - stOffset,     c0, "T5" )
+    drawVtrimSmall (widget, 5, w - x - stOffset / 2, c0, "T6" )
     
-    local dx   = dy
-    local cl   = 67 + 20 * dx
+    local dx   = math.floor (w / 110)
+    local cl   = 20 * dx + (widget.radio == 20 and 67 or 35)
     local cr   = w - cl
-    local yOff = 45
+    local yOff = (widget.radio == 20 and 45 or 28)
 
     drawHtrim (widget, 0, cl, h - yOff, "T4", 0)
     drawHtrim (widget, 3, cr, h - yOff, "T1", 1)
@@ -473,26 +497,31 @@ local function paint(widget)
     local y0 = y
     local name
 
-    lcd.font(FONT_S)
-    text_w, text_h = lcd.getTextSize("")
+    lcd.font(widget.fontS)
     lcd.color(widget.colorTxt)
+    text_w, text_h = lcd.getTextSize("SA")      
     for i = 0, #arrSwitches do
       if i > 0 and  i % 5 == 0 then
-        x0 = x0 + 50
+        x0 = x0 + 2 * text_w
         x = x0
         y = y0
       end
       name = string.format("S%s", string.char(65 + i))     -- user can rename switches
       lcd.drawText (x, y, name, TEXT_LEFT)
-      drawSwitchSymbol (x + 25, y + 2, arrSwitches[i]:value())
-      y = y + text_h
+      drawSwitchSymbol (x + text_w + 4, y + 2, arrSwitches[i]:value())
+      y = y + widget.textSheight
     end
   end
   -- ********************************************************
   -- * drawFuncBtn                           paint() local  *
   -- ********************************************************
   local function drawFuncBtn (widget, x,  y)
-    local swArr = {{-30, -30}, {-20, 0}, {-30, 30}, {30, -30}, {20, 0}, {30, 30}}
+    local swArr = {}
+    if widget.radio == 20 then
+      swArr = {{-30, -30}, {-20, 0}, {-30, 30}, {30, -30}, {20, 0}, {30, 30}}
+    else
+      swArr = {{-20, -20}, {-10, 0}, {-20, 20}, {20, -20}, {10, 0}, {20, 20}}      
+    end
     for i, v in ipairs(swArr) do
       lcd.color(widget.colorTxt)
       lcd.drawCircle(x + v[1], y + v[2], 6)
@@ -515,13 +544,13 @@ local function paint(widget)
   -- ********************************************************
   local function drawSticks (widget, x, y)
     local stickShortArr = {"A", "E", "T", "R"}
-    lcd.font(FONT_S)
+    local offset = (widget.radio == 20 and 20 or 15)
+    lcd.font(widget.fontS)
     lcd.color(widget.colorTxt)
-    text_w, text_h = lcd.getTextSize("")
     for i = 1, #stickShortArr do
-      lcd.drawText (x,      y - 5, stickShortArr[i] .. ":")
-      lcd.drawText (x + 20, y - 5, math.floor (0.5 + arrChannels[i - 1]:value() / 10.24))
-      y = y + text_h
+      lcd.drawText (x,          y - 5, stickShortArr[i] .. ":")
+      lcd.drawText (x + offset, y - 5, math.floor (0.5 + arrChannels[i - 1]:value() / 10.24))
+      y = y + widget.textSheight
     end
   end
   -- ********************************************************
@@ -530,13 +559,15 @@ local function paint(widget)
   local function drawChans (widget, x, y)
     local yTxtOff = -2
     local wBar
-    local wRect  = 72
+    local wRect  = (widget.radio == 20 and 72 or 40)
+    local hRect  = (widget.radio == 20 and 10 or 6)
     local y0     = y
+    local offset
 
     lcd.font(FONT_XS)
     for i = 1, 24 do
       if i > 1 and (i - 1) % 8 == 0 then
-        x = x + 110
+        x = x + (widget.radio == 20 and 110 or 80)
         y = y0
       end
       -- label
@@ -544,10 +575,11 @@ local function paint(widget)
         lcd.drawText (x -  3, y + yTxtOff, i, TEXT_RIGHT)
       end
       if i % 2 == 0 then
-        lcd.drawText (x + 74, y + yTxtOff, i, TEXT_LEFT)
+        offset = (widget.radio == 20 and 74 or 44)
+        lcd.drawText (x + offset, y + yTxtOff, i, TEXT_LEFT)
       end
       -- bar outline
-      lcd.drawRectangle (x, y, wRect, 10)
+      lcd.drawRectangle (x, y, wRect, hRect)
       local val = (arrChannels[i - 1]:value() + 1024)/2048
       wBar = 4
       if val < 0 then
@@ -563,24 +595,26 @@ local function paint(widget)
       else
         lcd.color(COLOR_BLACK)
       end
-      lcd.drawFilledRectangle (x + xBar, y, wBar, 10)
+      lcd.drawFilledRectangle (x + xBar, y, wBar, hRect)
       lcd.color(COLOR_BLACK)
-      y = y + 13
-
+      y = y + (widget.radio == 20 and 13 or 9)
     end
   end
   -- ********************************************************
   -- * drawLS                                paint() local  *
   -- ********************************************************
 	local function drawLS (widget, x,  y)
-    local x0 = x
-    local w = 10
-    local h = 10
-    local i = 0
+    local x0      = x
+    local w       = (widget.radio == 20 and 10 or 8)
+    local h       = (widget.radio == 20 and 10 or 8)
+    local dX      = (widget.radio == 20 and 12 or 10)
+    local dY      = (widget.radio == 20 and 13 or 11)
+    local lsCount = (widget.radio == 20 and 30 or 20)    
+    local i       = 0
     local v
 
-    lcd.font(FONT_S)
-    while i < 20 do
+    lcd.font(widget.fontS)
+    while i < LSmax do
       if arrLogics[i] ~= nil then
         v = arrLogics[i]:value()
       else
@@ -600,14 +634,14 @@ local function paint(widget)
       i = i + 1
       if i%10 == 0 then
         x = x0
-        y = y + 13
+        y = y + dY
       elseif i%5 == 0 then
-        x = x + 18
+        x = x + dX + 3
       else
-        x = x + 12
+        x = x + dX
       end
     end
-    lcd.drawText (x, y-2, "LS 01-"..20, TEXT_LEFT)
+    lcd.drawText (x, y-2, "LS 01-"..LSmax, TEXT_LEFT)
   end
   -- ********************************************************
   -- * hms                                   paint() local  *
@@ -635,11 +669,12 @@ local function paint(widget)
   -- * drawTimers                        paint() local  *
   -- ********************************************************
   local function drawTimers (widget, x, y)
-    lcd.font(FONT_STD)
+    local offset = (widget.radio == 20 and 22 or 17)
+    lcd.font(widget.fontSTD)
     for i = 0, 2 do
       local t = arrTimers[i]:value()
-      lcd.drawText (x, y, "t" .. (i+1) ..":")
-      lcd.drawText (x+22, y, hms (t))
+      lcd.drawText (x,        y, "t" .. (i+1) ..":")
+      lcd.drawText (x+offset, y, hms (t))
       y = y + widget.textSTDheight + 2
     end
   end
@@ -647,7 +682,7 @@ local function paint(widget)
   -- * drawGyro                          paint() local  *
   -- ********************************************************  
   local function drawGyro (widget, x, y)
-    lcd.font(FONT_S)
+    lcd.font(widget.fontS)
     lcd.color(widget.colorTxt)
     text_w, text_h = lcd.getTextSize("gyro ")
     
@@ -655,29 +690,151 @@ local function paint(widget)
     lcd.drawText (x + text_w + 10, y,              "X: " .. idGyroX:value())
     lcd.drawText (x + text_w + 10, y +     text_h, "Y: " .. idGyroY:value())
   end
-  
+  -- ********************************************************
+  -- * drawEssentials                    paint() local  *
+  -- ********************************************************  
+  local function drawEssentials (widget, x, y)
+    local value
+    local offset = (widget.radio == 20 and 80 or 40)
+    
+    -- Draw Tx voltage
+    lcd.font(widget.fontS)    
+    lcd.drawText   (x, y, "TxBatt : ", TEXT_RIGHT)
+    lcd.drawNumber (x, y, idTxBatt:value(), idTxBatt:unit(), 1, TEXT_LEFT)
+
+    -- draw RSSI
+    if idRSSI ~= nil then
+      value = idRSSI:value()
+    else
+      value = "---"
+    end
+    lcd.drawText   (x, y + widget.textSheight, "RSSI : ", TEXT_RIGHT)
+    lcd.drawNumber (x, y + widget.textSheight, value, 0, 0, TEXT_LEFT)
+    
+    -- draw flight mode
+    --local currentFMval = system.getSource({category = CATEGORY_FLIGHT, member = CURRENT_FLIGHT_MODE}):value()     -- 0 nebo 1
+    flightMode = system.getSource({category = CATEGORY_FLIGHT, member = FLIGHT_CURRENT_MODE}):stringValue()
+    lcd.drawText (x, y + 2 * widget.textSheight, flightMode, TEXT_CENTERED)        
+
+  end
+
   --print ("### paint")
   if lcd.isVisible() then
-    if widget.radio ~= 20 and widget.radio ~= 18 then
+    local runScript = false
+    if widget.radio == 0 then
       printMessage (widget, "nohwsup")
-    elseif widget.zoneWidth < 784 then
-      printMessage (widget, "wgtsmall")
-    else
+    end
+    if widget.radio == 20 then  -- 800x480
+      if widget.zoneWidth < 784 then
+        printMessage (widget, "wgtsmall")
+      else
+        Xmode   =  67
+        Ymode   =   5
+        Xswitch =  67
+        Yswitch =  36
+        Xfunc   = 286
+        Yfunc   =  75
+        Xstick  = Xswitch
+        Ystick  = 135
+        Xchan   = 140
+        Ychan   = Ystick
+        XLS     = 540
+        YLS     =  39
+        Xtim    = XLS
+        Ytim    = 125
+        Xgyr    = XLS
+        Ygyr    = 210
+        Xess    = 420
+        Yess    =  36
+        widget.fontS   = FONT_S
+        widget.fontSTD = FONT_STD
+        lcd.font(FONT_S)
+        text_w, widget.textSheight = lcd.getTextSize("")
+        lcd.font(FONT_STD)
+        text_w, widget.textSTDheight = lcd.getTextSize("")
+        
+        runScript = true
+      end
+    elseif widget.radio == 18 then    -- 480x320
+      if widget.zoneWidth < 472 or widget.zoneHeight < 210 then
+        printMessage (widget, "wgtsmall")
+      else      
+        Xmode   =  40
+        Ymode   =   5
+        Xswitch =  Xmode
+        Yswitch =  24
+        Xfunc   = 150
+        Yfunc   =  55
+        Xstick  = Xswitch
+        Ystick  = 100
+        Xchan   =  90
+        Ychan   = Ystick
+        XLS     = 295
+        YLS     = Yswitch
+        Xtim    = 310
+        Ytim    = Ystick
+        Xgyr    = XLS
+        Ygyr    = 60
+        Xess    = 240
+        Yess    = Yswitch
+        widget.fontS   = FONT_XS
+        widget.fontSTD = FONT_STD      
+        lcd.font(FONT_XS)
+        text_w, widget.textSheight = lcd.getTextSize("")
+        lcd.font(FONT_S)
+        text_w, widget.textSTDheight = lcd.getTextSize("")
+        
+        runScript = true 
+      end
+    else                              -- 480x272
+      if widget.zoneWidth ~= 480 and widget.zoneHeight ~= 272  then
+        printMessage (widget, "wgtsmall")
+      else
+        Xmode   =  40
+        Ymode   =   5
+        Xswitch =  Xmode
+        Yswitch =  24
+        Xfunc   = 150
+        Yfunc   =  55
+        Xstick  = Xswitch
+        Ystick  = 100
+        Xchan   = 50
+        Ychan   = 155
+        XLS     = 290
+        YLS     = 50
+        Xtim    = 310
+        Ytim    = Ychan
+        Xgyr    = XLS
+        Ygyr    = 85
+        Xess    = 160
+        Yess    = YLS
+        widget.fontS   = FONT_XS
+        widget.fontSTD = FONT_STD      
+        lcd.font(FONT_XS)
+        text_w, widget.textSheight = lcd.getTextSize("")
+        lcd.font(FONT_S)
+        text_w, widget.textSTDheight = lcd.getTextSize("")        
+        runScript = true 
+      end
+    end    
+    if runScript == true then
       lcd.color(widget.colorBkg)
       lcd.drawFilledRectangle(0, 0, widget.zoneWidth, widget.zoneHeight)
 
+
       drawSliders   (widget)
       drawTrims     (widget)
-      drawModelName (widget,  67,   5)
+      drawModelName (widget,  Xmode,   Ymode)
+      drawSwitches  (widget,  Xswitch,  Yswitch)
       if widget.radio == 20 or widget.radio == 18 then
-        drawSwitches  (widget,  67,  36)
+        drawFuncBtn    (widget, Xfunc,  Yfunc)
       end
-      drawFuncBtn   (widget, 286,  75)
-      drawSticks    (widget,  67, 135)
-      drawChans     (widget, 140, 135)
-		  drawLS        (widget, 540,  39)
-		  drawTimers    (widget, 540, 125)
-      drawGyro      (widget, 540, 210)
+      drawSticks     (widget, Xstick, Ystick)
+      drawChans      (widget, Xchan,  Ychan)
+      drawLS         (widget, XLS,    YLS)
+      drawTimers     (widget, Xtim,   Ytim)
+      drawGyro       (widget, Xgyr,   Ygyr)
+      drawEssentials (widget, Xess,   Yess)    
     end
   end
 end
@@ -689,10 +846,6 @@ end
 local function wakeup(widget)
   if widget.initPending == true then
     -- TODO if necesssary
-    local w, h = lcd.getWindowSize()
-    widget.zoneHeight = h
-    widget.zoneWidth  = w
-
     widget.modelName    = model.name()
     local version       = system.getVersion()
     widget.screenHeight = version.lcdHeight
@@ -706,27 +859,26 @@ local function wakeup(widget)
       widget.radio = 20
     elseif string.find(board,"18") then
       widget.radio = 18
-    elseif string.find(board,"14") then
-      widget.radio = 14
+--    elseif string.find(board,"14") then
+--      widget.radio = 14
     elseif string.find(board,"12") then
       widget.radio = 12
     elseif string.find(board,"10") then
       widget.radio = 10
+ 
     else
-      widget.radio = 0        -- unsupported yet
+      widget.radio = 0        -- unsupported radio
     end
     
-    lcd.font(FONT_S)
-    text_w, widget.textSheight = lcd.getTextSize("")
-    lcd.font(FONT_STD)
-    text_w, widget.textSTDheight = lcd.getTextSize("")
-
     widget.runBgTasks   = true
     widget.initPending  = false
 
     GetIDs (widget)
   end
   if widget.runBgTasks == true then
+    local w, h = lcd.getWindowSize()
+    widget.zoneHeight = h
+    widget.zoneWidth  = w    
     lcd.invalidate ()
   end
 end
