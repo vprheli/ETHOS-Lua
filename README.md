@@ -44,3 +44,10 @@ Multilingual support.
 Modification of the OpenTx script showing the states of the controls on the X20, X18, X12 and X10 transmitters.
 
 ![ShowAll-X20-small](https://github.com/user-attachments/assets/9bbd08fd-a531-4158-aea4-754392e2dd96)
+
+If you like it you can support it by making a donation!
+<p>
+  <a href="https://www.paypal.me/vprheli/5">
+      <img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" alt="paypal">
+  </a>
+</p>
