@@ -1,0 +1,28 @@
+-- multilanguage text table
+-- if Yo want add your supported mother language, extend table and let me know, I will push it in the Git
+local transtable  = { en =  { wgname          = "Showall",
+                              frontColor      = "Select front and graphic color",
+                              backColor       = "Select background color",
+                              labelColor      = "Select label color",
+                              channelColor    = "Select channel slider color",
+                              wgtsmall        = "Small Widget",
+                              nohwsup         = "Unsupported radio",
+                            },
+                      cz =  { wgname          = "Showall",
+                              frontColor      = "Vyberte barvu textu a grafiky",
+                              backColor       = "Vyberte barvu pozadí",
+                              labelColor      = "Vyberta barvu popisek",
+                              channelColor    = "Vyberte barvu výplně kanálů",
+                              wgtsmall        = "Málo místa",
+                              nohwsup         = "Nepodporované rádio",
+                            },
+                      de =  { wgname          = "Showall",
+                              frontColor      = "Text- und Grafikfarbe auswählen",
+                              backColor       = "Hintergrundfarbe auswählen",
+                              labelColor      = "Etikettenfarbe auswählen",
+                              channelColor    = "Wählen Sie die Farbe des Kanalreglers",
+                              wgtsmall        = "Kleines Widget",
+                              nohwsup         = "Nicht unterstütztes Radio",
+                            },                           
+                    }
+return {transtable = transtable}                          
