@@ -24,13 +24,14 @@
 --           27.01.2025  1.0.0   VPRHELI  minor changes
 --           07.02.2025  1.0.2   VPRHELI  current value and liPo cell fix
 --           09.02.2025  1.0.3   VPRHELI  telemetry on LiPo senzor on, no battery connection fix
+--           17.02.2025  1.0.4   VPRHELI  Only VFAS sensor bug
 -- =============================================================================
 --
 -- TODO
 -- carbon background - taken from the net and height according to the lowest widget - I would name it carbon.bmp
 -- white background
 
-local version           = "v1.0.3"
+local version           = "v1.0.4"
 local environment       = system.getVersion()
 -- load translate table from external file
 local tableFile  = assert(loadfile("/scripts/batcap/translate.lua"))()
@@ -184,7 +185,7 @@ end
 -- #    Widget Configuration options                                  #
 -- #################################################################### 
 local function configure(widget)
-  print ("### function configure()")
+  --print ("### function configure()")
   libs.menuLib.configure (widget)
   widget.screenHeight = nil         -- force varLib.CheckEnvironment (widget)  
 end
@@ -261,7 +262,7 @@ local function wakeup(widget)
     if actual_time > widget.last_time then
       widget.last_time = actual_time + 1 / g_updates_per_second   -- new time for widget refresh
       if lcd.isVisible() then
-        lcd.invalidate ();                                        -- full screen refresh
+        lcd.invalidate ()                                         -- full screen refresh
       end
     end
   end  

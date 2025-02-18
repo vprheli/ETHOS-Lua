@@ -22,6 +22,7 @@
 --           15.01.2025  0.0.1   VPRHELI  initial version
 --           27.01.2025  1.0.0   VPRHELI  minor changes
 --           07.02.2025  1.0.2   VPRHELI  LiOn and LiFePo4 voltage capacity table changed
+--           17.02.2025  1.0.4   VPRHELI  Only VFAS sensor bug
 -- =============================================================================
 -- Snsor IDs
 -- https://openrcforums.com/forum/viewtopic.php?t=5701
@@ -303,7 +304,15 @@ function batLib.paintBattery (widget)
         lcd.color(COLOR_RED)
       end
     else
-      if widget.LipoSensor:state() == false then
+      local state
+      if widget.LipoSensor ~= nil then
+        state = widget.LipoSensor:state()
+      elseif widget.VoltageSensor ~= nil then
+        state = widget.VoltageSensor:state()
+      else
+        state = false
+      end
+      if state == false then
         lcd.color(COLOR_RED)
       else
         lcd.color(COLOR_YELLOW)
@@ -373,7 +382,7 @@ function batLib.paintBattery (widget)
         local current    = widget.current
         local cellsCount = (widget.LipoSensor ~= nil) and widget.cellsCount or 1
         
-        if (widget.LipoSensor ~= nil) and (cellsCount <= 5) then
+        if ((widget.LipoSensor ~= nil) and (cellsCount <= 5)) or (widget.LipoSensor == nil) then
           y = y + cellsCount * (widget.battCellH + widget.battCelldY)
           lcd.color(COLOR_BLUE)
           lcd.drawFilledRectangle (x, y, widget.battVwidth, widget.battVheight)    

@@ -44,7 +44,7 @@ end
 -- #    Widget Configuration options                                  #
 -- #################################################################### 
 function menuLib.configure(widget)
-  print ("### menuLib.configure()")
+  --print ("### menuLib.configure()")
   
   local cellsEnabled = widget.VoltageSensor
   -- Battery Capacity Version
