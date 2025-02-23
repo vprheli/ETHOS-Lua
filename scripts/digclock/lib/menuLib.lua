@@ -26,38 +26,38 @@ local menuLib     = {}
 local conf        = nil
 local libs        = nil
 
--- #################################################################### 
+-- ####################################################################
 -- # menuLib.init                                                     #
 -- ####################################################################
 function menuLib.init(param_conf, param_libs)
-  print ("### menuLib.init()")
-  conf   = param_conf  
+  --print ("### menuLib.init()")
+  conf   = param_conf
   libs   = param_libs
 
   return menuLib
-end 
+end
 
--- #################################################################### 
+-- ####################################################################
 -- # menuLib.configure                                                #
 -- #    Widget Configuration options                                  #
--- #################################################################### 
+-- ####################################################################
 function menuLib.configure(widget)
   print ("### menuLib.configure()")
-  
+
   -- Battery Capacity Version
   line = form.addLine(libs.utils.translate ("menuname") .. "  " .. conf.version)
-  
+
   -- Vario Sensor
   line = form.addLine(libs.utils.translate("StopWatch"))
-  form.addSourceField(line, nil, function() return widget.StopWatch end, 
+  form.addSourceField(line, nil, function() return widget.StopWatch end,
                                  function (value)
                                     if value:name() == "---" then
                                       widget.StopWatch = nil
                                     else
                                       widget.StopWatch = value
                                     end
-                                 end) 
-  
+                                 end)
+
   -- Segment Color
   line = form.addLine(libs.utils.translate ("segmentColor"))
   local segment_colors = { { libs.utils.translate ("colorRed"),    0 },
@@ -66,12 +66,12 @@ function menuLib.configure(widget)
                         }
   local function get_segment_color() return widget.segmentColor end
   local function set_segment_color(type) widget.segmentColor = type end
-  form.addChoiceField(line, nil, segment_colors, get_segment_color, set_segment_color)  
-  
+  form.addChoiceField(line, nil, segment_colors, get_segment_color, set_segment_color)
+
   -- Background color
   line = form.addLine(libs.utils.translate("bgcolor"))
   form.addColorField(line, nil, function() return widget.bgcolor end, function(color) widget.bgcolor = color end)
-  
+
     -- Text color
   line = form.addLine(libs.utils.translate("txtcolor"))
   form.addColorField(line, nil, function() return widget.txtcolor end, function(color) widget.txtcolor = color end)
