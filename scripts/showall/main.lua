@@ -22,6 +22,7 @@
 --           06.02.2025  1.0.0   VPRHELI  initial version
 --           15.02.2025  1.0.1   VPRHELI  full X20 HW, X18 support
 --           16.02.2025  1.0.2   VPRHELI  Flight mode, TX battery, RSSI
+--           17.02.2025  1.0.3   VPRHELI  RSSI new model fix, fill channel sliders, DE translate table
 -- =============================================================================
 --
 -- Comment: Code is optimized for X20/X18 single zone (not full screen)
@@ -38,23 +39,9 @@
 -- X12 HORUS    480x272   SA-SH       6        4           6              yes           yes
 -- X10 HORUS    480x272   SA-SH       4        2  
 
-local version           = "v1.0.2"
-local transtable        = { en = { wgname          = "Showall",
-                                   frontColor      = "Select front color",
-                                   backColor       = "Select background color",
-                                   labelColor      = "Select label color",
-                                   wgtsmall        = "Small Widget",
-                                   nohwsup         = "Unsupported radio",
-                                 },
-                            cz = {
-                                   wgname          = "Showall",
-                                   frontColor      = "Vyberte barvu textu a grafiky",
-                                   backColor       = "Vyberte barvu pozadí",
-                                   labelColor      = "Vyberta barvu popisek",
-                                   wgtsmall        = "Málo místa",
-                                   nohwsup         = "Nepodporované rádio",
-                                 }
-                          }
+local version    = "v1.0.3"
+local tableFile  = assert(loadfile("/scripts/showall/translate.lua"))()
+local transtable = tableFile.transtable
 -- ========= LOCAL VARIABLES =============
 local g_locale      = system.getLocale()
 local LSmax         = nil
@@ -69,6 +56,9 @@ local arrTrims      = {}
 local arrFunctions  = {}
 local arrSliders    = {}
 local arrTimers     = {}
+
+local g_rescan_seconds = 5  -- check how often rescan ID (find new LS ....)
+local g_paint_period   = 4  -- 4x per second
 
 -- ####################################################################
 -- #  translate                                                       #
@@ -174,6 +164,8 @@ local function GetIDs (widget)
   idRSSI   = system.getSource("RSSI")
   idTxBatt = system.getSource({category=CATEGORY_SYSTEM, member=MAIN_VOLTAGE})
 
+  widget.zoneWidth, widget.zoneHeight = lcd.getWindowSize()
+  widget.bIsInitialized = true
 end
 
 -- ####################################################################
@@ -190,8 +182,9 @@ local function create()
               zoneWidth      = nil,
               border         = false,
               colorTxt       = lcd.RGB(  0,   0,   0),
-              colorLabel     = lcd.RGB(128, 128, 128),
+              colorLabel     = lcd.RGB(255, 255, 255),
               colorBkg       = lcd.RGB(  0, 192, 192),
+              colorChannel   = lcd.RGB(200, 200, 200),
               fontS          = nil,
               fontSTD        = nil,
               textSheight    = nil,
@@ -202,7 +195,10 @@ local function create()
               -- status
               initPending    = true,
               runBgTasks     = false,
+              bIsInitialized = false,
               simulation     = nil,
+              last_time      = 0,
+              last_paint     = 0,
     }
 end
 
@@ -448,7 +444,6 @@ local function paint(widget)
       lcd.drawLine (x - 8, c0 + 2, x + 8, c0 + 2)
     end    
   end
-  
   -- ********************************************************
   -- * drawTrims                             paint() local  *
   -- ********************************************************
@@ -590,6 +585,9 @@ local function paint(widget)
         wBar = 2
       end
       local xBar = val * wRect - wBar / 2
+      -- fill slider
+      lcd.color(widget.colorChannel)
+      lcd.drawFilledRectangle (x + 1, y + 1, xBar, hRect - 2)
       if val == 0.5 then
         lcd.color(COLOR_RED)
       else
@@ -705,11 +703,12 @@ local function paint(widget)
     -- draw RSSI
     if idRSSI ~= nil then
       value = idRSSI:value()
-    else
+    end
+    if value == nil then
       value = "---"
     end
     lcd.drawText   (x, y + widget.textSheight, "RSSI : ", TEXT_RIGHT)
-    lcd.drawNumber (x, y + widget.textSheight, value, 0, 0, TEXT_LEFT)
+    lcd.drawText   (x, y + widget.textSheight, value, TEXT_LEFT)
     
     -- draw flight mode
     --local currentFMval = system.getSource({category = CATEGORY_FLIGHT, member = CURRENT_FLIGHT_MODE}):value()     -- 0 nebo 1
@@ -719,7 +718,7 @@ local function paint(widget)
   end
 
   --print ("### paint")
-  if lcd.isVisible() then
+  if lcd.isVisible() and widget.bIsInitialized == true then
     local runScript = false
     if widget.radio == 0 then
       printMessage (widget, "nohwsup")
@@ -844,6 +843,7 @@ end
 -- #    this is the main loop that ethos calls every couple of ms     #
 -- ####################################################################
 local function wakeup(widget)
+  local actual_time = os.clock()  -- actual time 
   if widget.initPending == true then
     -- TODO if necesssary
     widget.modelName    = model.name()
@@ -859,13 +859,12 @@ local function wakeup(widget)
       widget.radio = 20
     elseif string.find(board,"18") then
       widget.radio = 18
---    elseif string.find(board,"14") then
+--    elseif string.find(board,"14") then     -- not supported yet
 --      widget.radio = 14
     elseif string.find(board,"12") then
       widget.radio = 12
     elseif string.find(board,"10") then
       widget.radio = 10
- 
     else
       widget.radio = 0        -- unsupported radio
     end
@@ -876,10 +875,16 @@ local function wakeup(widget)
     GetIDs (widget)
   end
   if widget.runBgTasks == true then
-    local w, h = lcd.getWindowSize()
-    widget.zoneHeight = h
-    widget.zoneWidth  = w    
-    lcd.invalidate ()
+    if lcd.isVisible() then
+      if actual_time > widget.last_time then
+        widget.last_time = actual_time + g_rescan_seconds   -- new time for ID refresh
+        GetIDs (widget)
+      end
+      if actual_time > widget.last_paint then
+        last_paint = actual_time + 1 / g_paint_period
+        lcd.invalidate ()
+      end
+    end
   end
 end
 -- ####################################################################
@@ -891,31 +896,37 @@ local function configure(widget)
     line = form.addLine(translate("frontColor"))
     form.addColorField(line, nil, function() return widget.colorTxt end, function(color) widget.colorTxt = color end)
 
-    -- Backround color
+    -- Label color
     line = form.addLine(translate("labelColor"))
     form.addColorField(line, nil, function() return widget.colorLabel end, function(color) widget.colorLabel = color end)
 
-    -- Backround color
+    -- Background color
     line = form.addLine(translate("backColor"))
     form.addColorField(line, nil, function() return widget.colorBkg end, function(color) widget.colorBkg = color end)
+    
+    -- Channel slider color
+    line = form.addLine(translate("channelColor"))
+    form.addColorField(line, nil, function() return widget.colorChannel end, function(color) widget.colorChannel = color end)
 end
 -- ####################################################################
 -- # read                                                             #
 -- #    read values from internal storage                             #
 -- ####################################################################
 local function read(widget)
-  widget.colorTxt   = storage.read("colorTxt")
-  widget.colorBkg   = storage.read("colorBkg")
-  widget.colorLabel = storage.read("colorLabel")
+  widget.colorTxt     = storage.read("colorTxt")
+  widget.colorBkg     = storage.read("colorBkg")
+  widget.colorLabel   = storage.read("colorLabel")
+  widget.colorChannel = storage.read("colorChannel")
 end
 -- ####################################################################
 -- # write                                                            #
 -- #    write values to internal storage                              #
 -- ####################################################################
 local function write(widget)
-	storage.write("colorTxt",   widget.colorTxt)
-	storage.write("colorBkg",   widget.colorBkg)
-	storage.write("colorLabel", widget.colorLabel)
+	storage.write("colorTxt",     widget.colorTxt)
+	storage.write("colorBkg",     widget.colorBkg)
+	storage.write("colorLabel",   widget.colorLabel)
+	storage.write("colorChannel", widget.colorChannel)
 end
 -- ####################################################################
 -- # init                                                             #
