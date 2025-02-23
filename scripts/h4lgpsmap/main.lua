@@ -24,7 +24,8 @@
 --           28.01.2025  1.0.8   VPRHELI  fixed and modified version
 --           02.02.2025  2.0.0   VPRHELI  Autoselect map
 --           07.02.2025  2.0.1   VPRHELI  ETHOS 1.6.1 fixed 1.6.0 #4941 bug in GPS coordinates
---           16.02.2025  2.0.2   VPRHELI  X10 / X12 / X18 and X20 support
+--           17.02.2025  2.0.2   VPRHELI  X10 / X12 / X18 and X20 support
+--           17.02.2025  2.0.3   VPRHELI  Reset Home position only if widget visible
 -- =============================================================================
 --
 --    From version HL4GPSMAP 2.0.1 onwards, use at least ETHOS 1.6.1
@@ -472,7 +473,7 @@ end
 ------------------------------------------------------------------------------------------------
 local function CheckReset(widget)
   -- Checks if Reset source is triggered, if so then forces a new Home init.
-  if widget.rstValue == 100 then
+  if widget.rstValue == 100 and lcd.isVisible() then
     ConfirmHomeUpdate(widget)      -- new position has to be confirmed
   end
 end
