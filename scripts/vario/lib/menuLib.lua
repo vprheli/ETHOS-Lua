@@ -31,7 +31,7 @@ local libs        = nil
 -- # menuLib.init                                                     #
 -- ####################################################################
 function menuLib.init(param_conf, param_libs)
-  print ("### menuLib.init()")
+  --print ("### menuLib.init()")
   conf   = param_conf  
   libs   = param_libs
 
@@ -70,7 +70,7 @@ function menuLib.configure(widget)
                                       widget.VerticalSensor = value
                                     end
                                  end) 
-  -- Some color
+  -- Background color
   line = form.addLine(libs.utils.translate("bgcolor"))
   form.addColorField(line, nil, function() return widget.bgcolor end, function(color) widget.bgcolor = color end)
 

@@ -22,46 +22,20 @@
 --           23.01.2025  0.0.1   VPRHELI  initial version
 --           27.01.2025  1.0.0   VPRHELI  minor changes
 --           16.02.2025  1.0.1   VPRHELI  removing opacity bitmaps, use opacity color
+--           23.02.2025  1.0.2   VPRHELI  translate table is separate file now
 -- =============================================================================
 --
 -- TODO
 
-local version           = "v1.0.1"
+local version           = "v1.0.2"
 local environment       = system.getVersion()
--- multilanguage text table
--- if Yo want add your supported mother language, extend table and let me know, I will push it in the Git
-local transtable        = { en = { wgname          = "Vario",
-                                   menuname        = "Vario",
-                                   VarioSensor     = "Height sensor",
-                                   VertSensor      = "Vertical speed sensor",
-                                   wgtsmall        = "Small Widget",
-                                   badSensor       = "Bad sensor type",
-                                   noTelemetry     = "No Telemetry",
-                                   bgcolor         = "Select background color",
-                                 },
-                            cz = { wgname          = "Vario",
-                                   menuname        = "Vário",
-                                   VarioSensor     = "Senzor výšky",
-                                   VertSensor      = "Senzor vertikální rychlosti",
-                                   wgtsmall        = "Málo místa",
-                                   badSensor       = "Špatně zvolený senzor",
-                                   noTelemetry     = "Chybí telemetrie",
-                                   bgcolor         = "Vyberte barvu pozadí",
-                                 },
-                            de = { wgname          = "Vario",
-                                   menuname        = "Vário",
-                                   VarioSensor     = "Höhensensor",
-                                   VertSensor      = "Vertikaler Geschwindigkeitssensor",
-                                   wgtsmall        = "Kleines Widget",
-                                   badSensor       = "Schlechter Sensortyp",
-                                   noTelemetry     = "Keine Telemetrie",
-                                   bgcolor         = "Hintergrundfarbe auswählen",
-                                 }                                 
-                          }
+-- load translate table from external file
+local tableFile  = assert(loadfile("/scripts/vario/translate.lua"))()
+local transtable = tableFile.transtable
                           
 local utils   = {}
 local libs    = { menuLib  = nil,
-                  batLib   = nil,
+                  varLib   = nil,
                   utils    = nil}
 local g_libInitDone    = false
  
@@ -88,8 +62,8 @@ local g_libInitDone    = false
                 colors         = colors,
               }
 
-local g_last_time    = 0                      -- last time of refreshed display
-local g_updates_per_second = 1                -- how many times per second display will be updated
+local g_rescan_seconds  = 5   -- check how often rescan ID (find new LS ....)
+local g_paint_frequency = 1   -- how many times per second display will be updated (1x per second)
 
 -- #################################################################### 
 -- # loadLibrary                                                      #
@@ -119,7 +93,7 @@ local function initLibraries(widget)
     -- load libraries
     libs.utils   = loadLibrary("utils")
     libs.menuLib = loadLibrary("menuLib")
-    libs.batLib  = loadLibrary("varLib")
+    libs.varLib  = loadLibrary("varLib")
   end   
 end
 -- #################################################################### 
@@ -152,7 +126,8 @@ local function create()
                    zoneHeight     = nil,
                    zoneWidth      = nil,
                    screenType     = "",
-                   last_time      = 0,
+                   last_rescan    = 0,
+                   last_paint     = 0,
                    noTelFrameT    = 3,      -- thickness of no telemetry frame
                    frameX         = 60,     -- X frame size for pitch attitude markers
                    frameY         = 18,     -- Y frame size for pitch attitude markers
@@ -166,7 +141,7 @@ end
 -- ####################################################################
 local function paint(widget)
   --print ("### function paint()")  
-  libs.batLib.paint (widget)
+  libs.varLib.paint (widget)
 end
 -- #################################################################### 
 -- # menu                                                             #
@@ -188,7 +163,7 @@ end
 -- #    Widget Configuration options                                  #
 -- #################################################################### 
 local function configure(widget)
-  print ("### function configure()")
+  --print ("### function configure()")
   libs.menuLib.configure (widget)
   widget.screenHeight = nil         -- force varLib.CheckEnvironment (widget)
 end
@@ -249,31 +224,36 @@ local function wakeup(widget)
   
   if widget.initPending == true then
     -- TODO if necesssary
+    libs.utils.checkTelemetry()
+    conf.lastTelState  = conf.telemetryState
     widget.runBgTasks  = true
     widget.initPending = false
   end  
 
   if widget.runBgTasks == true then
-    libs.utils.checkTelemetry()
-    --libs.utils.checkFlightReset(widget)           -- not necessary in this widget
-    if conf.telemetryState ~= conf.lastTelState then
-      -- telemetry state changed
-      --print ("### telemetry state changed")
-      if conf.lastTelState == 1 then
-        widget.lastAltitude = widget.altitude
+    if lcd.isVisible() then
+      if actual_time > widget.last_rescan then                            -- rescan environment, telemetry status
+        widget.last_rescan = actual_time + g_rescan_seconds               -- new time for rescan
+--        widget.zoneWidth = 0
+--        libs.varLib.CheckEnvironment (widget)                             -- zone change
+        libs.utils.checkTelemetry()
+        libs.utils.checkFlightReset(widget)
+        if conf.telemetryState ~= conf.lastTelState then                  -- telemetry state changed
+          --print ("### telemetry state changed")
+          if conf.lastTelState == 1 then
+            widget.lastAltitude = widget.altitude
+          end          
+          conf.lastTelState = conf.telemetryState
+          -- let transmitter and widgets until sensors are back on
+          widget.last_paint = actual_time  + 3
+        end        
       end
-      conf.lastTelState = conf.telemetryState
-      -- let transmitter and widgets until sensors are back on
-      widget.last_time = actual_time  + 3      
-    end
-
-    if actual_time > widget.last_time then
-      widget.last_time = actual_time + 1 / g_updates_per_second   -- new time for widget refresh
-      if lcd.isVisible() then
-        lcd.invalidate ();                                        -- full screen refresh
+      if actual_time > widget.last_paint then                             -- rescan environment, telemetry status
+        widget.last_paint = actual_time + 1 / g_paint_frequency  -- new time for paint
+        lcd.invalidate ()        
       end
-    end
-  end  
+    end     -- isVisible
+  end       -- runBgTasks
   return
 end
 

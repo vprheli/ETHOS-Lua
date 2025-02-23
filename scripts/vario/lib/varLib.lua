@@ -15,7 +15,7 @@
 --
 -- =============================================================================
 -- ETHOS Vario library
--- File:   : batLib.lua
+-- File:   : varLib.lua
 -- Author  : RNDr.Vladimir Pribyl, CSc. (VPRHELI)
 -- History : Date        Version Author   Comment
 --           ----------  ------- -------- ------------------------------------
@@ -45,7 +45,7 @@ local libs        = nil
 -- # varLib.init                                                      #
 -- ####################################################################
 function varLib.init(param_conf, param_libs)
-  print ("### varLib.init ()")
+  --print ("### varLib.init ()")
   conf   = param_conf 
   libs   = param_libs
   
@@ -288,8 +288,8 @@ end
 -- # varLib.paint                                                     #
 -- ####################################################################
 function varLib.paint (widget)
-  libs.batLib.CheckEnvironment (widget)
-  libs.batLib.readSensors(widget)
+  libs.varLib.CheckEnvironment (widget)
+  libs.varLib.readSensors(widget)
   -- force background
   --lcd.color(conf.colors.panelBackground)
   lcd.color(widget.bgcolor)  
