@@ -14,7 +14,7 @@ local transtable  = { en = { wgname          = "Battery Capacity",
                              noTelemetry     = "No Telemetry",
                              color1          = "Select color",
                            },
-                      cz = {
+                      cs = {
                              wgname          = "Kapacita baterie",
                              menuname        = "Kapacita baterie",
                              battype         = "Typ baterie",

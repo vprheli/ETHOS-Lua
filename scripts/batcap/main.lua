@@ -25,13 +25,14 @@
 --           07.02.2025  1.0.2   VPRHELI  current value and liPo cell fix
 --           09.02.2025  1.0.3   VPRHELI  telemetry on LiPo senzor on, no battery connection fix
 --           17.02.2025  1.0.4   VPRHELI  Only VFAS sensor bug
+--           04.03.2025  1.0.5   VPRHELI  translate table fix
 -- =============================================================================
 --
 -- TODO
 -- carbon background - taken from the net and height according to the lowest widget - I would name it carbon.bmp
 -- white background
 
-local version           = "v1.0.4"
+local version           = "v1.0.5"
 local environment       = system.getVersion()
 -- load translate table from external file
 local tableFile  = assert(loadfile("/scripts/batcap/translate.lua"))()
