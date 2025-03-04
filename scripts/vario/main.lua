@@ -23,11 +23,12 @@
 --           27.01.2025  1.0.0   VPRHELI  minor changes
 --           16.02.2025  1.0.1   VPRHELI  removing opacity bitmaps, use opacity color
 --           23.02.2025  1.0.2   VPRHELI  translate table is separate file now
+--           04.03.2025  1.0.3   VPRHELI  translate table fix
 -- =============================================================================
 --
 -- TODO
 
-local version           = "v1.0.2"
+local version           = "v1.0.3"
 local environment       = system.getVersion()
 -- load translate table from external file
 local tableFile  = assert(loadfile("/scripts/vario/translate.lua"))()
