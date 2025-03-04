@@ -14,7 +14,7 @@ local transtable   = { en = { wgname          = "Battery Capacity",
                               bgcolor         = "Select background color",
                               txtcolor        = "Select text color",
                            },
-                      cz = {
+                      cs = {
                               wgname          = "Digitalni stopky",
                               menuname        = "Digitální stopky",
                               StopWatch       = "Stopky",
