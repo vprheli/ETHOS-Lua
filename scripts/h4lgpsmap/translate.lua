@@ -39,7 +39,7 @@ local transtable = { en = { wgname          = "GPS Multi Map",
                             errNoTitle      = "DISABLE TITLE",
                             errNoHWsup      = "UNSUPPORTED RADIO",                            
                           },
-                     cz = {
+                     cs = {
                             wgname          = "GPS multi mapa",
                             menuname        = "GPS multi mapa",
                             mnUnits         = "Jednotky",

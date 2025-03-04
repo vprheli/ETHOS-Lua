@@ -26,6 +26,7 @@
 --           07.02.2025  2.0.1   VPRHELI  ETHOS 1.6.1 fixed 1.6.0 #4941 bug in GPS coordinates
 --           17.02.2025  2.0.2   VPRHELI  X10 / X12 / X18 and X20 support
 --           17.02.2025  2.0.3   VPRHELI  Reset Home position only if widget visible
+--           04.03.2025  2.0.4   VPRHELI  translate table fix
 -- =============================================================================
 --
 --    From version HL4GPSMAP 2.0.1 onwards, use at least ETHOS 1.6.1
@@ -65,7 +66,7 @@
 ------------------------------------------------------------------------------------------------
 -- Set up of variables used in whole scope
 ------------------------------------------------------------------------------------------------
-local Version           = "v2.0.2"
+local Version           = "v2.0.4"
 local mapImage                  -- Global use of map image
 local Windsock                  -- Global use of windsock image
 local DMSLatString      = ""    -- Global DMS Latitude string
