@@ -3,7 +3,7 @@
 -- # License GPLv3: https://www.gnu.org/licenses/gpl-3.0.html              #
 -- #                                                                       #
 -- # This program is free software; you can redistribute it and/or modify  #
--- # it under the terms of the GNU General Public License version 2 as     #
+-- # it under the terms of the GNU General Public License version 3 as     #
 -- # published by the Free Software Foundation.                            #
 -- #                                                                       #
 -- # This program is distributed in the hope that it will be useful        #
@@ -165,7 +165,7 @@ end
 local function configure(widget)
   --print ("### function configure()")
   libs.menuLib.configure (widget)
-  widget.screenHeight = nil         -- force varLib.CheckEnvironment (widget)
+  widget.screenHeight = nil         -- force digLib.CheckEnvironment (widget)
   widget.swMember     = nil
 end
 -- ####################################################################

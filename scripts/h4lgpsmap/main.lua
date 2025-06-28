@@ -3,7 +3,7 @@
 -- # License GPLv3: https://www.gnu.org/licenses/gpl-3.0.html              #
 -- #                                                                       #
 -- # This program is free software; you can redistribute it and/or modify  #
--- # it under the terms of the GNU General Public License version 2 as     #
+-- # it under the terms of the GNU General Public License version 3 as     #
 -- # published by the Free Software Foundation.                            #
 -- #                                                                       #
 -- # This program is distributed in the hope that it will be useful        #
@@ -27,6 +27,7 @@
 --           17.02.2025  2.0.2   VPRHELI  X10 / X12 / X18 and X20 support
 --           17.02.2025  2.0.3   VPRHELI  Reset Home position only if widget visible
 --           04.03.2025  2.0.4   VPRHELI  translate table fix
+--           09.04.2025  2.0.5   VPRHELI  removed map limit count
 -- =============================================================================
 --
 --    From version HL4GPSMAP 2.0.1 onwards, use at least ETHOS 1.6.1
@@ -66,7 +67,7 @@
 ------------------------------------------------------------------------------------------------
 -- Set up of variables used in whole scope
 ------------------------------------------------------------------------------------------------
-local Version           = "v2.0.4"
+local Version           = "v2.0.5"
 local mapImage                  -- Global use of map image
 local Windsock                  -- Global use of windsock image
 local DMSLatString      = ""    -- Global DMS Latitude string
@@ -661,7 +662,8 @@ end
 -- ####################################################################
 local function MapImgAutoLoad(widget)
   local fileName
-  for i = 1, 32 do
+  local i = 1
+  repeat
     fileName = string.format("/scripts/h4lgpsmap/maps/map%d.lua", i)
     local f = io.open(fileName, "r")
     if f ~= nil then
@@ -671,7 +673,8 @@ local function MapImgAutoLoad(widget)
     else
       break
     end
-  end
+    i = i + 1
+  until i > 200       -- just for memory security
   --print("### mapImgAutoLoad() loaded " .. #widget.mapsArr .. " files")
 end
 

@@ -3,7 +3,7 @@
 -- # License GPLv3: https://www.gnu.org/licenses/gpl-3.0.html              #
 -- #                                                                       #
 -- # This program is free software; you can redistribute it and/or modify  #
--- # it under the terms of the GNU General Public License version 2 as     #
+-- # it under the terms of the GNU General Public License version 3 as     #
 -- # published by the Free Software Foundation.                            #
 -- #                                                                       #
 -- # This program is distributed in the hope that it will be useful        #
@@ -216,7 +216,7 @@ function batLib.readSensors(widget)
     if sensorA ~= nil then
       widget.current = sensorA:value()
       -- calculate current max
-      if sensorA ~= nil and widget.current > widget.currMax then
+      if widget.current ~= nil and widget.current > widget.currMax then
         widget.currMax = widget.current
       end
     else

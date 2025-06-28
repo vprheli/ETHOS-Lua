@@ -3,7 +3,7 @@
 -- # License GPLv3: https://www.gnu.org/licenses/gpl-3.0.html              #
 -- #                                                                       #
 -- # This program is free software; you can redistribute it and/or modify  #
--- # it under the terms of the GNU General Public License version 2 as     #
+-- # it under the terms of the GNU General Public License version 3 as     #
 -- # published by the Free Software Foundation.                            #
 -- #                                                                       #
 -- # This program is distributed in the hope that it will be useful        #
@@ -26,13 +26,14 @@
 --           09.02.2025  1.0.3   VPRHELI  telemetry on LiPo senzor on, no battery connection fix
 --           17.02.2025  1.0.4   VPRHELI  Only VFAS sensor bug
 --           04.03.2025  1.0.5   VPRHELI  translate table fix
+--           19.04.2025  1.0.6   VPRHELI  current max if sensor not detected
 -- =============================================================================
 --
 -- TODO
 -- carbon background - taken from the net and height according to the lowest widget - I would name it carbon.bmp
 -- white background
 
-local version           = "v1.0.5"
+local version           = "v1.0.6"
 local environment       = system.getVersion()
 -- load translate table from external file
 local tableFile  = assert(loadfile("/scripts/batcap/translate.lua"))()
@@ -188,7 +189,7 @@ end
 local function configure(widget)
   --print ("### function configure()")
   libs.menuLib.configure (widget)
-  widget.screenHeight = nil         -- force varLib.CheckEnvironment (widget)  
+  widget.screenHeight = nil         -- force batLib.CheckEnvironment (widget)  
 end
 -- #################################################################### 
 -- # read                                                             #
