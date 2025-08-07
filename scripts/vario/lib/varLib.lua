@@ -71,20 +71,18 @@ function varLib.CheckEnvironment (widget)
     widget.zoneWidth  = w
     
     if widget.zoneWidth == 800 and widget.zoneHeight == 480 or widget.zoneWidth == 800 and widget.zoneHeight == 458 then
-      widget.screenType = "X20fullScreen"                            -- battery icon 198x350
-      --widget.batteryIcon = libs.utils.loadBitmap("empty800480.png")
+      widget.screenType = "X20fullScreen"
     elseif widget.zoneWidth == 784 and widget.zoneHeight == 316 or widget.zoneWidth == 784 and widget.zoneHeight == 294 then
-      --widget.screenType = "X20fullScreenWithTitle"                   -- battery icon 111x200
-      widget.batteryIcon = libs.utils.loadBitmap("empty480320.png")
+      widget.screenType = "X20fullScreenWithTitle"                   -- battery icon 111x200
     elseif widget.zoneWidth == 388 and widget.zoneHeight == 316 or widget.zoneWidth == 388 and widget.zoneHeight == 294 then
       widget.screenType = "X20halfScreen"
-      --widget.batteryIcon = libs.utils.loadBitmap("empty480320.png")
     elseif widget.zoneWidth == 300 and widget.zoneHeight == 280 or widget.zoneWidth == 300 and widget.zoneHeight == 258 then
       widget.screenType = "X20halfSreenWithSliders"    
-      --widget.batteryIcon = libs.utils.loadBitmap("empty480320.png")
     elseif widget.zoneWidth == 256 and widget.zoneHeight == 316 or widget.zoneWidth == 256 and widget.zoneHeight == 294 then
       widget.screenType = "X20thirdScreen"     
-      --widget.batteryIcon = libs.utils.loadBitmap("empty480320.png")
+    -- X18 temporary fix for two zone size
+    elseif widget.zoneWidth == 234 and widget.zoneHeight == 210 or widget.zoneWidth == 472 and widget.zoneHeight == 210 then
+      widget.screenType = "X18halfScreen"      
     else
       widget.screenType = "Wrongwgt"
     end
