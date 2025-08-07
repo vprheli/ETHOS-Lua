@@ -45,6 +45,19 @@ Modification of the OpenTx script showing the states of the controls on the X20,
 
 ![ShowAll-X20-small](https://github.com/user-attachments/assets/9bbd08fd-a531-4158-aea4-754392e2dd96)
 
+<h2> ETHOS Flights widget </h2>
+This is a simple flight counter including total flight time.
+Two conditions are set in the configuration screen.<BR>
+1) The condition when the flight is taken as real and the minimum duration of this condition<BR>
+2) The condition when the flight begins and ends.
+The first condition eliminates testing the model before takeoff, engine tuning, etc. and only by fulfilling this condition for a set period of time will the flight counter increase. <I>This can be, for example, the minimum position of the throttle lever for a certain period of time.</I>
+</BR>The second condition is then used to obtain the total flight duration. <I>This can be, for example, engine activation, starting and stopping the counter...</I>
+<BR><B>If the first condition is not met, the flight duration is not added.</B>
+<BR>
+<img width="309" height="100" alt="obrazek" src="https://github.com/user-attachments/assets/51741bca-4ec0-4d76-995b-3ebddaa4f70a" />
+
+
+
 If you like it you can support it by making a donation!
 <p>
   <a href="https://www.paypal.me/vprheli/5">
