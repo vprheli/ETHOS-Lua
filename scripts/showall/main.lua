@@ -24,6 +24,7 @@
 --           16.02.2025  1.0.2   VPRHELI  Flight mode, TX battery, RSSI
 --           17.02.2025  1.0.3   VPRHELI  RSSI new model fix, fill channel sliders, DE translate table
 --           04.03.2025  1.0.4   VPRHELI  translate table fix
+--           08.08.2025  1.0.5   VPRHELI  Timers count fix
 -- =============================================================================
 --
 -- Comment: Code is optimized for X20/X18 single zone (not full screen)
@@ -40,7 +41,7 @@
 -- X12 HORUS    480x272   SA-SH       6        4           6              yes           yes
 -- X10 HORUS    480x272   SA-SH       4        2  
 
-local version    = "v1.0.4"
+local version    = "v1.0.5"
 local tableFile  = assert(loadfile("/scripts/showall/translate.lua"))()
 local transtable = tableFile.transtable
 -- ========= LOCAL VARIABLES =============
@@ -670,7 +671,7 @@ local function paint(widget)
   local function drawTimers (widget, x, y)
     local offset = (widget.radio == 20 and 22 or 17)
     lcd.font(widget.fontSTD)
-    for i = 0, 2 do
+    for i = 0, #arrTimers do
       local t = arrTimers[i]:value()
       lcd.drawText (x,        y, "t" .. (i+1) ..":")
       lcd.drawText (x+offset, y, hms (t))
