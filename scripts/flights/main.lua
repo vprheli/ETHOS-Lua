@@ -22,6 +22,7 @@
 --           ----------  ------- -------- ------------------------------------
 --           18.01.2025  1.0.0   VPRHELI  initial version based on "Flights widget 2.0.1" of "d_wheel" USA
 --           07.08.2025  1.1.0   VPRHELI  history total flight counter, Italian language supported
+--           08.08.2025  1.1.1   VPRHELI  reset flight update file immedietly
 -- =============================================================================
 --
 -- Warm thanks to my Italian colleague Francesco Salvi for the translation into Italian
@@ -62,12 +63,11 @@ end
 -- #################################################################### 
 local function create()
     return {
-      value          = 0,
       flights        = 0,       -- number of flights
       preset         = 0,       -- 
       newPreset      = 0,       -- preset value from widget configuration
       flights_total  = 0,       -- total seconds of all flight
-      flight_counter = 0,
+      flight_time    = 0,
       flightSwitch   = nil,
       flightActive   = false,
       trigDelay      = 0,       -- widget configuration
@@ -99,6 +99,7 @@ end
 local function wgtinitialize (widget)
     --print ("### wgtinitialize")
     widget.modelName = model.name()
+    widget.flight_time = os.clock()
  
     local board = system.getVersion().board
     if string.find(board,"10") then
@@ -178,15 +179,13 @@ local function paint(widget)
   if widget.flightActive == true then
     if lastflightActive == false then
       --print ("### Flight started")
-      widget.flight_counter = 0        
-    else
-      widget.flight_counter = widget.flight_counter + 1
-      --print ("### flights_counter = ", widget.flight_counter)
+      widget.flight_time = os.clock()       
     end
   elseif lastflightActive ~= widget.flightActive and widget.triggerActive == true then
     -- fly Active switch os off
     --print ("### Flight finished")
-    widget.flights_total = widget.flights_total + widget.flight_counter
+    widget.flights_total = math.floor (widget.flights_total + (os.clock() - widget.flight_time))
+    system.playTone(1500,500)
     widget.updateFlight = true
   end
   if widget.triggerSwitch ~= nil and widget.triggerSwitch:state() and widget.triggerActive == false then
@@ -196,13 +195,13 @@ local function paint(widget)
       widget.flights = widget.flights + 1
       widget.newPreset = widget.flights
       widget.preset    = widget.flights
+      system.playTone(1500,500)
       widget.triggerActive = true
       widget.updateFlight  = true           -- new flight detected
     end
   else
     widget.triggerSec = 0
   end
-  --print("### FC / trigger = " .. widget.flight_counter .. " / " .. widget.triggerSec)
   
   if lcd.isVisible() then
     local box_center = widget.zoneWidth / 2
@@ -294,7 +293,7 @@ local function wakeup(widget)
     checkFlightReset(widget)
     if widget.FlightReset == 1 then
       widget.FlightReset    = 0
-      widget.flight_counter = 0
+      widget.flight_time    = os.clock()
       widget.triggerSec     = 0
       widget.updateFlight   = false
       widget.triggerActive  = false
@@ -307,17 +306,18 @@ local function wakeup(widget)
     end
     -- reset flight counters
     if widget.newPreset == -1 then
+      system.playTone(2000,250,250)
       system.playTone(2000,250)
       widget.flights   = 0
       widget.preset    = 0
       widget.newPreset = 0
       widget.flights_total = 0
+      widget.updateFlight = true
     end
   end
   
   if widget.updateFlight == true then
     --print("#### Updating flight counter")
-    system.playTone(1500,500)
     widget.updateFlight = false
     fileWrite ()
     if lcd.isVisible() then
