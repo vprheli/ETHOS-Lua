@@ -23,11 +23,12 @@
 --           18.01.2025  1.0.0   VPRHELI  initial version based on "Flights widget 2.0.1" of "d_wheel" USA
 --           07.08.2025  1.1.0   VPRHELI  history total flight counter, Italian language supported
 --           08.08.2025  1.1.1   VPRHELI  reset flight update file immedietly
+--           14.08.2025  1.1.2   VPRHELI  correct flight counter bug
 -- =============================================================================
 --
 -- Warm thanks to my Italian colleague Francesco Salvi for the translation into Italian
 --
-local version      = "v1.1.0"
+local version      = "v1.1.2"
 local g_filesPath  = "/scripts/flights/Files/"
 local g_locale     = system.getLocale()
 -- load translate table from external file
@@ -70,9 +71,10 @@ local function create()
       flight_time    = 0,
       flightSwitch   = nil,
       flightActive   = false,
+      flightUpdated  = false,   -- true if trigger sec > trigDelay
       trigDelay      = 0,       -- widget configuration
       triggerSwitch  = nil,
-      triggerActive  = false,   -- true if trigger sec > trigDelay
+      triggerActive  = false,   -- 
       triggerSec     = 0,
       updateFlight   = false,
       modelName      = nil,
@@ -80,6 +82,7 @@ local function create()
       -- status
       initPending    = false,
       FlightReset    = 0,
+      telemetryState = nil,
       -- layout
       zoneHeight     = nil,
       zoneWidth      = nil,
@@ -88,8 +91,9 @@ local function create()
       fontTimeH      = nil,
       radio          = "",
       border         = false,
+      noTelFrameT    = 3,        -- thickness of no telemetry frame      
       colorF         = lcd.RGB(0x00, 0xFC, 0x00),     -- color flights text
-      colorT         = lcd.RGB(0x00, 0xFC, 0x00),     -- color flight time text
+      colorT         = lcd.RGB(0x00, 0xFC, 0xC0),     -- color flight time text
     }
 end
 
@@ -97,7 +101,6 @@ end
 -- *  wgtinitialize                                                   #
 -- ####################################################################
 local function wgtinitialize (widget)
-    --print ("### wgtinitialize")
     widget.modelName = model.name()
     widget.flight_time = os.clock()
  
@@ -123,14 +126,11 @@ local function wgtinitialize (widget)
     if string.find(board,"XE") then
       widget.radio = "XE"
     end
-    
-    --test(widget)
 end
 -- #################################################################### 
 -- *  paint                                                           #
 -- ####################################################################
 local function paint(widget)
-  --print ("### paint")
   -- ********************************************************
   -- * CheckEnvironment                  paint() local  *
   -- *  Read environment varibles                       *
@@ -139,7 +139,6 @@ local function paint(widget)
     local w, h = lcd.getWindowSize()
    
     if w ~= widget.zoneWidth and h ~= widget.zoneHeight then
-      --print ("### CheckEnvironment")
       -- environment changed
       widget.zoneHeight = h
       widget.zoneWidth  = w
@@ -164,44 +163,15 @@ local function paint(widget)
     end
   end
   -- ********************************************************
-  -- * readSwitches                      paint() local  *
-  -- ********************************************************
-  local function readSwitches (widget)
-    if widget.flightSwitch ~= nil then
-      widget.flightActive  = widget.flightSwitch:state()
-    end
+  -- * checkTelemetry                    paint() local  *
+  -- ********************************************************  
+  local function checkTelemetry(widget)
+    local tlm  = system.getSource( { category=CATEGORY_SYSTEM_EVENT, member=SYSTEM_EVENT_TELEMETRY_ACTIVE} )
+    widget.telemetryState = (tlm:value() == 100) and 1 or 0
   end
-  
-  local lastflightActive = widget.flightActive
+
   CheckEnvironment (widget)
-  readSwitches (widget)
-  
-  if widget.flightActive == true then
-    if lastflightActive == false then
-      --print ("### Flight started")
-      widget.flight_time = os.clock()       
-    end
-  elseif lastflightActive ~= widget.flightActive and widget.triggerActive == true then
-    -- fly Active switch os off
-    --print ("### Flight finished")
-    widget.flights_total = math.floor (widget.flights_total + (os.clock() - widget.flight_time))
-    system.playTone(1500,500)
-    widget.updateFlight = true
-  end
-  if widget.triggerSwitch ~= nil and widget.triggerSwitch:state() and widget.triggerActive == false then
-    widget.triggerSec = widget.triggerSec + 1
-    --print("### trigger sec = " .. widget.triggerSec)
-    if widget.triggerSec > widget.trigDelay then
-      widget.flights = widget.flights + 1
-      widget.newPreset = widget.flights
-      widget.preset    = widget.flights
-      system.playTone(1500,500)
-      widget.triggerActive = true
-      widget.updateFlight  = true           -- new flight detected
-    end
-  else
-    widget.triggerSec = 0
-  end
+  checkTelemetry(widget)  
   
   if lcd.isVisible() then
     local box_center = widget.zoneWidth / 2
@@ -231,8 +201,12 @@ local function paint(widget)
     lcd.font(widget.timeFont)
     lcd.color(widget.colorT)
     lcd.drawText(box_center, 2 * dY + widget.fontFlightH, string.format("%d - %02d:%02d:%02d", d,h,m,s), CENTERED)
-    
   end
+  -- telemetry lost => red zone frame
+  if widget.telemetryState == 0 then
+    lcd.color(COLOR_RED)
+    lcd.drawRectangle(0, 0, widget.zoneWidth, widget.zoneHeight, widget.noTelFrameT)
+  end  
 end
 
 -- #################################################################### 
@@ -240,12 +214,30 @@ end
 -- #    this is the main loop that ethos calls every couple of ms     #
 -- #################################################################### 
 local function wakeup(widget)
+  -- ********************************************************
+  -- * checkFlightReset                 wakeup() local  *
+  -- ********************************************************  
   local function checkFlightReset(widget)
     local eventFlightReset  = system.getSource( { category=CATEGORY_SYSTEM_EVENT, member=SYSTEM_EVENT_FLIGHT_RESET} )
     if widget.FlightReset == 0 then     -- manual reset
       widget.FlightReset = (eventFlightReset:value() == 100) and 1 or 0
     end
   end
+  -- ********************************************************
+  -- * readSwitches                     wakeup() local  *
+  -- ********************************************************
+  local function readSwitches (widget)
+    if widget.flightSwitch ~= nil then
+      widget.flightActive  = widget.flightSwitch:state()
+    else
+      widget.flightActive = false
+    end
+    if widget.triggerSwitch ~= nil then
+      widget.triggerActive  = widget.triggerSwitch:state()
+    else
+      widget.triggerActive = false
+    end
+  end  
   -- ********************************************************
   -- * fileRead                         wakeup() local  *
   -- ********************************************************  
@@ -255,7 +247,6 @@ local function wakeup(widget)
       file:seek("set")
       local line = file:read("*l")
       file:close()
-      --print ("### data = " .. line)
       _, _, flights, flights_total = string.find (line, "(%d+),(%d+)")
       if widget.flights_total ~= nil then
         widget.flights_total = flights_total
@@ -278,6 +269,55 @@ local function wakeup(widget)
   local actual_time = os.clock()  -- Získání aktuálního času
   if actual_time > widget.last_time then
     widget.last_time = actual_time + 1
+    -- just change battery and fly again. Reset flight by transmitter menu allow initialize fly counter.
+    checkFlightReset(widget)
+    if widget.FlightReset == 1 then
+      -- *********************************
+      -- **   RESET FLIGHT          **
+      -- *********************************    
+      widget.FlightReset    = 0
+      widget.triggerSec     = 0
+      widget.flightUpdated  = false
+    end    
+    
+    local lastflightActive = widget.flightActive
+    readSwitches (widget)  
+    
+    if widget.flightActive == true then
+      if lastflightActive == false then
+        -- *********************************
+        -- **   NEW FLIGHT STARTED    **
+        -- *********************************
+        widget.flight_time = os.clock()
+        widget.triggerSec    = 0
+        widget.flightUpdated = false
+      end
+    elseif lastflightActive ~= widget.flightActive then
+      -- fly Active switch os off
+      -- *********************************
+      -- **   FLIGHT FINISHED       **
+      -- *********************************
+      if widget.flightUpdated == true then
+        -- increase flight counter if flight trigger is active
+        widget.flights_total = math.floor (widget.flights_total + (os.clock() - widget.flight_time))
+        system.playTone(2000,250)
+        widget.updateFlight = true
+      end
+    end
+    if widget.triggerActive == true and widget.flightUpdated == false then
+      widget.triggerSec = widget.triggerSec + 1
+      if widget.triggerSec >= widget.trigDelay then
+        -- *********************************
+        -- **   NEW FLIGHT DETECTED   **
+        -- *********************************
+        widget.flights = widget.flights + 1
+        widget.newPreset = widget.flights
+        widget.preset    = widget.flights
+        system.playTone(500,250)
+        widget.flightUpdated = true
+        widget.updateFlight  = true           -- new flight will be displayed
+      end
+    end    
     lcd.invalidate () 
   end
 
@@ -289,22 +329,14 @@ local function wakeup(widget)
     widget.newPreset = widget.flights
     widget.preset    = widget.flights
   else
-    -- just change battery and fly again. Reset flight by transmitter menu allow initialize fly counter.
-    checkFlightReset(widget)
-    if widget.FlightReset == 1 then
-      widget.FlightReset    = 0
-      widget.flight_time    = os.clock()
-      widget.triggerSec     = 0
-      widget.updateFlight   = false
-      widget.triggerActive  = false
-      --print("#### Flight Reset ####")
-    end    
     if widget.preset ~= widget.newPreset then
       widget.preset = widget.newPreset
       widget.flights = widget.preset
       -- ??? what about total flight time
     end
-    -- reset flight counters
+    -- *********************************
+    -- ** RESET FLIGHT COUNTERS   **
+    -- *********************************
     if widget.newPreset == -1 then
       system.playTone(2000,250,250)
       system.playTone(2000,250)
@@ -312,12 +344,14 @@ local function wakeup(widget)
       widget.preset    = 0
       widget.newPreset = 0
       widget.flights_total = 0
-      widget.updateFlight = true
-    end
+      widget.flightUpdated = false
+      widget.updateFlight  = true
+    end    
   end
-  
+  -- *********************************
+  -- ** UPDATE FLIGHTS FILE     **
+  -- *********************************  
   if widget.updateFlight == true then
-    --print("#### Updating flight counter")
     widget.updateFlight = false
     fileWrite ()
     if lcd.isVisible() then
@@ -330,6 +364,9 @@ end
 -- #    Widget Configuration options                                  #
 -- ####################################################################
 local function configure(widget)
+  
+    line = form.addLine(translate ("menuname") .. "  " .. version)
+    
     line = form.addLine(translate("flightswitch"))
     form.addSwitchField(line, form.getFieldSlots(line)[0], function() return widget.flightSwitch end, function(value) widget.flightSwitch = value end)
   
@@ -339,7 +376,6 @@ local function configure(widget)
     -- trigger delay enter
     line = form.addLine(translate("trigerdelay"))
     form.addNumberField(line, nil,0, 1000, function() return widget.trigDelay end, function(value) widget.trigDelay = value end)                                   
-    
     -- preset enter
     line = form.addLine(translate("preset"))
     form.addNumberField(line, nil,-1, 5120, function() return widget.newPreset end, function(value) widget.newPreset = value end)

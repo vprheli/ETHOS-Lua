@@ -3,6 +3,7 @@
 -- Warm thanks to my Italian colleague Francesco Salvi for the translation into Italian
 
 local transtable        = { en = { wgname          = "Flights",
+                                   menuname        = "Flights",
                                    frame           = "Border",
                                    txtColorF       = "Select flights text color",
                                    txtColorT       = "Select time text color",
@@ -14,6 +15,7 @@ local transtable        = { en = { wgname          = "Flights",
                                  },
                             cs = {
                                    wgname          = "Citac letu",
+                                   menuname        = "Čítač letů",
                                    frame           = "Rámeček",
                                    txtColorF       = "Barva textu letů",
                                    txtColorT       = "Barva textu celkového času",                                   
@@ -24,6 +26,7 @@ local transtable        = { en = { wgname          = "Flights",
                                    trigerdelay     = "Minimální trvání události",
                                  },
                             it = { wgname          = "Voli",
+                                   menuname        = "Voli",
                                    frame           = "Cornice",
                                    txtColorF       = "Seleziona colore testo",
                                    txtColorT       = "Seleziona colore tempo",
