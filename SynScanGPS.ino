@@ -5,6 +5,11 @@
 #include <Adafruit_GPS.h>
 #include <SoftwareSerial.h>
 
+// The following line enables a fix for UBlox NEO modules that typically work
+// at 9600 baud for default. It will assume that the module starts with that baud rate
+// and will change the baud rate to 4800 on startup.
+//#define UBLOX_NEO_SWITCH_FROM_DEFAULT_BAUDRATE
+
 // SynScan binary message
 // User Position, Velocity & Time II (D1h)
 struct BinaryMsg {
@@ -31,7 +36,8 @@ struct BinaryMsg {
 static void synscanSendBinMsg(BinaryMsg *binMsg);
 
 // GPS class
-Adafruit_GPS gps(&Serial);
+#define  GPS_PORT Serial
+Adafruit_GPS gps(&GPS_PORT);
 
 // SynScan connexion
 #define RXPIN 8
@@ -39,10 +45,12 @@ Adafruit_GPS gps(&Serial);
 SoftwareSerial nss(RXPIN, TXPIN);
 
 // LED
-#define LEDPIN 13
+#define LED_PIN         13
+#define LED_BLINK_TIME  500
 
 // Global State
 bool sendBinaryMsg = false;
+long lastLedTime;
 
 // Synscan command buffer
 #define BUFF_SIZE 15
@@ -141,14 +149,37 @@ static void synscanSendMsg(char *msg, uint16_t len)
 //
 void setup()
 {
+#ifdef UBLOX_NEO_SWITCH_FROM_DEFAULT_BAUDRATE
+  GPS_PORT.begin(9600);
+  byte message[] = {
+    0xB5, 0x62, // header
+    0x06, 0x00, // class id
+    0x14, 0x00, // length in bytes (20)
+    0x01,                   // port id
+    0x00,                   // reserved0
+    0x00, 0x00,             // txReady
+    0xD0, 0x08, 0x00, 0x00, // mode (no parity, 1 stop bit, 8 bit data)
+    0xC0, 0x12, 0x00, 0x00, // baudrate (4800)
+    0x07, 0x00,             // inProtoMask
+    0x03, 0x00,             // outProtoMask
+    0x00, 0x00,             // reserved4
+    0x00, 0x00,             // reserved5
+    0xcf,                   // CK_A
+    0xe4,                   // CK_B
+  };
+  GPS_PORT.write(message, sizeof(message));
+  delay(600);
+#endif
+
   // Init GPS connexion
   gps.begin(4800);
   
   // Init SynScan connexion
   nss.begin(4800);
   
-  pinMode(LEDPIN, OUTPUT);
-  digitalWrite(LEDPIN, LOW);
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
+  lastLedTime = millis();
 }
 
 //
@@ -199,6 +230,7 @@ void loop()
         case 2 : binMsg.fixIndicator = 1; // DGPS
         default : binMsg.fixIndicator = 5; // Invalid
       }
+
       if (gps.fix)
       {
         binMsg.qualityOfFix = gps.fixquality_3d - 1; // 2D fix or 3D fix
@@ -215,21 +247,20 @@ void loop()
       binMsg.vdop = (uint8_t) gps.VDOP;
       binMsg.tdop = 1;
 
-      if (gps.fix)
-      {
-        digitalWrite(LEDPIN, HIGH);
-      }
-      else
-      {
-        // No fix
-        digitalWrite(LEDPIN, LOW);
-      }
-        
       // Synscan ask for GPS data
       if (sendBinaryMsg)
       {
         synscanSendBinMsg(&binMsg);
       }
+    }
+  }
+  if (gps.fix){
+    digitalWrite(LED_PIN, HIGH);
+  } else {
+    long cur_time = millis();
+    if (cur_time - lastLedTime >= LED_BLINK_TIME) {
+      digitalWrite(LED_PIN, !digitalRead(LED_PIN));
+      lastLedTime = cur_time;
     }
   }
 }
