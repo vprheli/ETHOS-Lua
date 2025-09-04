@@ -24,11 +24,16 @@
 --           16.02.2025  1.0.1   VPRHELI  removing opacity bitmaps, use opacity color
 --           23.02.2025  1.0.2   VPRHELI  translate table is separate file now
 --           04.03.2025  1.0.3   VPRHELI  translate table fix
+--           03.09.2025  1.0.4   VPRHELI  background color storage fix (thanks Andreas), Italian translation
 -- =============================================================================
+--
+-- The latest version can always be found at https://github.com/vprheli/ETHOS-Lua
+--
+-- Warm thanks to my Italian colleague Francesco Salvi for the translation into Italian
 --
 -- TODO
 
-local version           = "v1.0.3"
+local version           = "v1.0.4"
 local environment       = system.getVersion()
 -- load translate table from external file
 local tableFile  = assert(loadfile("/scripts/vario/translate.lua"))()
@@ -176,14 +181,7 @@ local function read(widget)
   --print ("### function read()")
   widget.VarioSensor              = storage.read("Vario")  
   widget.VerticalSensor           = storage.read("VSpeed") 
-  widget.color1                   = storage.read("color1")
-  
---  print ("")
---  if widget.VarioSensor == nil then
---    print ("### read ### widget.VarioSensor     : nil")
---  else
---    print ("### read ### widget.VarioSensor     : " .. widget.VarioSensor:name())    
---  end
+  widget.bgcolor                  = storage.read("bgcolor")
 	return true
 end
 -- #################################################################### 
@@ -192,16 +190,9 @@ end
 -- #################################################################### 
 local function write(widget)
   --print ("### function write()")
---  print ("")
---  if widget.VarioSensor == nil then
---      print ("### write ### widget.VarioSensor    : nil")
---  else
---    print ("### write ### widget.VarioSensor    : " .. widget.VarioSensor:name())    
---  end
-
   storage.write("Vario"       , widget.VarioSensor)  
   storage.write("VSpeed"      , widget.VerticalSensor)  
-	storage.write("color1"      , widget.color1)
+	storage.write("bgcolor"     , widget.bgcolor)
 
 	return true
 end
