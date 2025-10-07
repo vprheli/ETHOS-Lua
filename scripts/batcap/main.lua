@@ -229,8 +229,8 @@ end
 -- #    even occurs such as a button or screen click                  #
 -- #################################################################### 
 local function event(widget, category, value, x, y)
-  print ("### BatCap function event()")
-	print ("### Event received:", category, value, x, y)
+  --print ("### BatCap function event()")
+	--print ("### Event received:", category, value, x, y)
 	
 	return false
 end

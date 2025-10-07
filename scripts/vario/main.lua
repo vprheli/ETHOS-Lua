@@ -201,7 +201,7 @@ end
 -- #    even occurs such as a button or screen click                  #
 -- #################################################################### 
 local function event(widget, category, value, x, y)
-  print ("### Vario function event()")
+  --print ("### Vario function event()")
 	--print ("### Event received:", category, value, x, y)
 	
 	return false
@@ -224,7 +224,6 @@ local function wakeup(widget)
   if widget.runBgTasks == true then
     if lcd.isVisible() then
       if actual_time > widget.last_rescan then                            -- rescan environment, telemetry status
-        print("### rescan telemetry")
         widget.last_rescan = actual_time + g_rescan_seconds               -- new time for rescan
 --        widget.zoneWidth = 0
 --        libs.varLib.CheckEnvironment (widget)                             -- zone change
