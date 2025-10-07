@@ -110,8 +110,7 @@ end
 -- #################################################################### 
 local function create()
   --print ("### function create()")
-  
-	return { 
+  return { 
                    -- telemetry
                    VarioSensor    = nil,        -- FrSky Vario ADV, FrSky Archer Plus GR8
                    VerticalSensor = nil,
@@ -202,10 +201,10 @@ end
 -- #    even occurs such as a button or screen click                  #
 -- #################################################################### 
 local function event(widget, category, value, x, y)
-  --print ("### function event()")
+  print ("### Vario function event()")
 	--print ("### Event received:", category, value, x, y)
 	
-	return true
+	return false
 end
 -- #################################################################### 
 -- # wakeup                                                           #
@@ -225,6 +224,7 @@ local function wakeup(widget)
   if widget.runBgTasks == true then
     if lcd.isVisible() then
       if actual_time > widget.last_rescan then                            -- rescan environment, telemetry status
+        print("### rescan telemetry")
         widget.last_rescan = actual_time + g_rescan_seconds               -- new time for rescan
 --        widget.zoneWidth = 0
 --        libs.varLib.CheckEnvironment (widget)                             -- zone change
@@ -264,9 +264,9 @@ local function init()
             key       = key,				  -- unique project id
             name      = name,				  -- name of widget - objevi se v seznamu Widgetu
             create    = create,			  -- function called when creating widget
-            configure = configure,		-- function called when configuring the widget (use ethos forms)
             paint     = paint,				-- function called when lcd.invalidate() is called
             wakeup    = wakeup,			  -- function called as the main loop
+            configure = configure,		-- function called when configuring the widget (use ethos forms)
             read      = read,				  -- function called when starting widget and reading configuration params
             write     = write,				-- function called when saving values / changing values in the configuration menu
             event     = event,				-- function called when buttons or screen clips occur

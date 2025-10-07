@@ -202,7 +202,7 @@ local function event(widget, category, value, x, y)
   --print ("### function event()")
 	--print ("### Event received:", category, value, x, y)
 
-	return true
+	return false
 end
 -- ####################################################################
 -- # wakeup                                                           #

@@ -26,6 +26,8 @@
 --           14.08.2025  1.1.2   VPRHELI  correct flight counter bug
 -- =============================================================================
 --
+-- The latest version can always be found at https://github.com/vprheli/ETHOS-Lua
+--
 -- Warm thanks to my Italian colleague Francesco Salvi for the translation into Italian
 --
 local version      = "v1.1.2"
