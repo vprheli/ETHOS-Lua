@@ -22,6 +22,8 @@
 --           23.01.2025  0.0.1   VPRHELI  initial version
 --           27.01.2025  1.0.0   VPRHELI  minor changes
 --           16.02.2025  1.0.1   VPRHELI  removing opacity bitmaps, use opacity color
+--           21.10.2025  1.1.0   andreaskuhl  feature: min/max values display
+--           21.10.2025  1.1.1   andreaskuhl  optimize altitude value frame
 -- =============================================================================
 -- Snsor IDs
 -- https://openrcforums.com/forum/viewtopic.php?t=5701
@@ -190,7 +192,7 @@ function varLib.paintVario (widget)
     lcd.drawText(x+widget.frameX + 4, y + widget.frameY / 4, "Alt m")
     -- altitude value frame
     lcd.font(FONT_XXL)
-    text_w, text_h = lcd.getTextSize("300")
+    text_w, text_h = lcd.getTextSize("3000")
     lcd.color(conf.colors.black)
 
     lcd.drawFilledRectangle (x + widget.frameX + widget.dblNumOffset, centerY - text_h, text_w, 2 * text_h)
@@ -199,13 +201,13 @@ function varLib.paintVario (widget)
     -- altitude value
     lcd.color(conf.colors.white)
     lcd.font(FONT_XXL)
-    text_w, text_h = lcd.getTextSize("300")
+    text_w, text_h = lcd.getTextSize("3000")
     --lcd.drawNumber(x + widget.frameX + widget.dblNumOffset, centerY - text_h / 2, widget.altitude, nil, 0, TEXT_LEFT)
     lcd.drawNumber(x + widget.frameX + widget.dblNumOffset + (text_w / 2), centerY - text_h / 2, widget.altitude, nil, 0, TEXT_CENTERED)
     if widget.showMinMax then
       lcd.color(conf.colors.gray)
       lcd.font(FONT_S)
-      local _, text_h2 = lcd.getTextSize("300")
+      local _, text_h2 = lcd.getTextSize("3000")
       lcd.drawNumber(x + widget.frameX + widget.dblNumOffset + (text_w / 2), centerY - text_h / 2 - text_h2 , widget.altitudeMax, nil, 0, TEXT_CENTERED)
       lcd.drawNumber(x + widget.frameX + widget.dblNumOffset + (text_w / 2), centerY + text_h / 2, widget.altitudeMin, nil, 0, TEXT_CENTERED)
     end
@@ -280,7 +282,7 @@ function varLib.paintVario (widget)
     if widget.showMinMax then
       lcd.color(conf.colors.gray)
       lcd.font(FONT_S)
-      local _, text_h2 = lcd.getTextSize("-20")
+      local _, text_h2 = lcd.getTextSize("-10.0")
       lcd.drawNumber(x - widget.frameX - widget.dblNumOffset - (text_w/2), centerY - text_h/2 - text_h2, widget.vertSpeedMax, nil, 1, TEXT_CENTERED)
       lcd.drawNumber(x - widget.frameX - widget.dblNumOffset - (text_w/2), centerY + text_h/2 , widget.vertSpeedMin, nil, 1, TEXT_CENTERED)
       end
