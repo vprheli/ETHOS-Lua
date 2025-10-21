@@ -34,22 +34,23 @@
 --
 -- TODO
 
-local version           = "v1.0.5"
+local version           = "v1.1.0"
 local environment       = system.getVersion()
 -- load translate table from external file
-local tableFile  = assert(loadfile("/scripts/vario/translate.lua"))()
+local tableFile  = assert(loadfile("translate.lua"))() --  work with relative path
 local transtable = tableFile.transtable
-                          
+
 local utils   = {}
 local libs    = { menuLib  = nil,
                   varLib   = nil,
                   utils    = nil}
 local g_libInitDone    = false
- 
+
  colors = {
     white            = COLOR_WHITE,
     black            = COLOR_BLACK,
     red              = COLOR_RED,
+    gray             = lcd.RGB(128, 128, 128), -- gray for min/max-value text
     panelBackground  = lcd.RGB(0,   160, 224),
   }
 -- #############
@@ -58,7 +59,7 @@ local g_libInitDone    = false
  local conf = {
                 version        = version,
                 locale         = system.getLocale(),
-                basePath       = "/scripts/vario/",
+                basePath       = "",  --  work with relative path
                 libFolder      = "lib/",
                 imgFolder      = "img/",
                 transtable     = transtable,
@@ -72,7 +73,7 @@ local g_libInitDone    = false
 local g_rescan_seconds  = 5   -- check how often rescan ID (find new LS ....)
 local g_paint_frequency = 1   -- how many times per second display will be updated (1x per second)
 
--- #################################################################### 
+-- ####################################################################
 -- # loadLibrary                                                      #
 -- ####################################################################
 function loadLibrary(filename)
@@ -82,17 +83,17 @@ function loadLibrary(filename)
   end
   return lib
 end
--- #################################################################### 
+-- ####################################################################
 -- *  name                                                            #
 -- *    return Widget name                                            #
--- #################################################################### 
+-- ####################################################################
 local function name(widget)
   return libs.utils.translate ("wgname")
 end
--- #################################################################### 
+-- ####################################################################
 -- *  initLibraries                                                   #
 -- *    return Widget name                                            #
--- #################################################################### 
+-- ####################################################################
 local function initLibraries(widget)
   --print ("### initLibraries()")
   if g_libInitDone == false then
@@ -101,34 +102,39 @@ local function initLibraries(widget)
     libs.utils   = loadLibrary("utils")
     libs.menuLib = loadLibrary("menuLib")
     libs.varLib  = loadLibrary("varLib")
-  end   
+  end
 end
--- #################################################################### 
+-- ####################################################################
 -- #  create                                                          #
 -- #    this function is called whenever the widget is first          #
 -- #    initialised.                                                  #
 -- #    it's usefull for setting up widget variables or just          #
--- #################################################################### 
+-- ####################################################################
 local function create()
   --print ("### function create()")
-  return { 
+  return {
                    -- telemetry
                    VarioSensor    = nil,        -- FrSky Vario ADV, FrSky Archer Plus GR8
                    VerticalSensor = nil,
-                   -- Vario Values
+                                      -- Vario Values
                    altitude       = nil,
+                   altitudeMax    = nil,
+                   altitudeMin    = nil,
                    vertSpeed      = nil,
+                   vertSpeedMax   = nil,
+                   vertSpeedMin   = nil,
                    lastAltitude   = nil,
                    FlightReset    = 0,          -- should be zero
                    -- layout
-                   bgcolor        = lcd.RGB(0, 160, 224),   
+                   showMinMax     = true,
+                   bgcolor        = lcd.RGB(0, 160, 224),
                    transtable     = transtable,
                    -- status
                    initPending    = true,
-                   runBgTasks     = false,                   
+                   runBgTasks     = false,
                    -- layout
                    screenHeight   = nil,
-                   screenWidth    = nil, 
+                   screenWidth    = nil,
                    zoneHeight     = nil,
                    zoneWidth      = nil,
                    screenType     = "",
@@ -142,14 +148,14 @@ local function create()
                    dblNumOffset   = 38,
                  }
 end
--- #################################################################### 
+-- ####################################################################
 -- *  paint                                                           #
 -- ####################################################################
 local function paint(widget)
-  --print ("### function paint()")  
+  --print ("### function paint()")
   libs.varLib.paint (widget)
 end
--- #################################################################### 
+-- ####################################################################
 -- # menu                                                             #
 -- #    add a menu item to the configuration menu popup of the widget #
 -- 3    usefull if adding new tools                                   #
@@ -164,63 +170,66 @@ local function menu(widget)
 		--   { "Entry 2", function() end},
 	}
 end
--- #################################################################### 
+-- ####################################################################
 -- # configure                                                        #
 -- #    Widget Configuration options                                  #
--- #################################################################### 
+-- ####################################################################
 local function configure(widget)
   --print ("### function configure()")
   libs.menuLib.configure (widget)
   widget.screenHeight = nil         -- force varLib.CheckEnvironment (widget)
 end
--- #################################################################### 
+-- ####################################################################
 -- # read                                                             #
 -- #    read values from internal storage                             #
--- #################################################################### 
+-- ####################################################################
 local function read(widget)
   --print ("### function read()")
-  widget.VarioSensor              = storage.read("Vario")  
-  widget.VerticalSensor           = storage.read("VSpeed") 
+  widget.VarioSensor              = storage.read("Vario")
+  widget.VerticalSensor           = storage.read("VSpeed")
   widget.bgcolor                  = storage.read("bgcolor")
+  widget.showMinMax               = storage.read("showMinMax")
+  -- set default 'true' if nil (old configuration file)
+  if widget.showMinMax == nil then widget.showMinMax = true end
 	return true
 end
--- #################################################################### 
+-- ####################################################################
 -- # write                                                            #
 -- #    write values to internal storage                              #
--- #################################################################### 
+-- ####################################################################
 local function write(widget)
   --print ("### function write()")
-  storage.write("Vario"       , widget.VarioSensor)  
-  storage.write("VSpeed"      , widget.VerticalSensor)  
+  storage.write("Vario"       , widget.VarioSensor)
+  storage.write("VSpeed"      , widget.VerticalSensor)
 	storage.write("bgcolor"     , widget.bgcolor)
-
+  storage.write("showMinMax"  , widget.showMinMax)
 	return true
 end
--- #################################################################### 
+-- ####################################################################
 -- # event                                                            #
 -- #    trigger whenever the widget is in focus and and               #
 -- #    even occurs such as a button or screen click                  #
--- #################################################################### 
+-- ####################################################################
 local function event(widget, category, value, x, y)
   --print ("### Vario function event()")
 	--print ("### Event received:", category, value, x, y)
-	
+
 	return false
 end
--- #################################################################### 
+-- ####################################################################
 -- # wakeup                                                           #
 -- #    this is the main loop that ethos calls every couple of ms     #
--- #################################################################### 
+-- ####################################################################
 local function wakeup(widget)
   local actual_time = os.clock()  -- Získání aktuálního času
-  
+
   if widget.initPending == true then
     -- TODO if necesssary
     libs.utils.checkTelemetry()
     conf.lastTelState  = conf.telemetryState
     widget.runBgTasks  = true
     widget.initPending = false
-  end  
+  end
 
   if widget.runBgTasks == true then
     if lcd.isVisible() then
@@ -234,25 +243,25 @@ local function wakeup(widget)
           --print ("### telemetry state changed")
           if conf.lastTelState == 1 then
             widget.lastAltitude = widget.altitude
-          end          
+          end
           conf.lastTelState = conf.telemetryState
           -- let transmitter and widgets until sensors are back on
           widget.last_paint = actual_time  + 3
-        end        
+        end
       end
       if actual_time > widget.last_paint then                             -- rescan environment, telemetry status
         widget.last_paint = actual_time + 1 / g_paint_frequency  -- new time for paint
-        lcd.invalidate ()        
+        lcd.invalidate ()
       end
     end     -- isVisible
   end       -- runBgTasks
   return
 end
 
--- #################################################################### 
+-- ####################################################################
 -- # init                                                             #
 -- #    this is where we 'setup' the widget                           #
--- #################################################################### 
+-- ####################################################################
 local function init()
   --print ("### function init()")
 	local key = "Vario"			  -- unique key - keep it less that 8 chars
@@ -274,7 +283,7 @@ local function init()
             persistent = false,			  -- true or false to make the widget carry values between sessions and models (not safe imho)
         }
   )
-  
+
 end
 
 return {init = init}
