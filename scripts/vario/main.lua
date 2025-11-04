@@ -118,14 +118,14 @@ local function create()
                    -- telemetry
                    VarioSensor    = nil,        -- FrSky Vario ADV, FrSky Archer Plus GR8
                    VerticalSensor = nil,
-                                      -- Vario Values
-                   altitude       = nil,
-                   altitudeMax    = nil,
-                   altitudeMin    = nil,
-                   vertSpeed      = nil,
-                   vertSpeedMax   = nil,
-                   vertSpeedMin   = nil,
-                   lastAltitude   = nil,
+                    -- Vario Values
+                   altitude       = 0,
+                   altitudeMax    = 0,
+                   altitudeMin    = 0,
+                   vertSpeed      = 0,
+                   vertSpeedMax   = 0,
+                   vertSpeedMin   = 0,
+                   lastAltitude   = 0,
                    FlightReset    = 0,          -- should be zero
                    -- layout
                    showMinMax     = true,
@@ -146,7 +146,7 @@ local function create()
                    frameX         = 60,     -- X frame size for pitch attitude markers
                    frameY         = 18,     -- Y frame size for pitch attitude markers
                    markerL_len    = 10,
-                   markerR_len    = 8,
+                   markerR_len    = 16,
                    dblNumOffset   = 38,
                  }
 end
@@ -213,8 +213,8 @@ end
 -- #    even occurs such as a button or screen click                  #
 -- ####################################################################
 local function event(widget, category, value, x, y)
-  --print ("### Vario function event()")
-	--print ("### Event received:", category, value, x, y)
+  -- print ("### Vario function event()")
+	-- print ("### Event received:", category, value, x, y)
 
 	return false
 end
@@ -283,7 +283,7 @@ local function init()
             event     = event,				-- function called when buttons or screen clips occur
             menu      = menu,				  -- function called to add items to the menu
             persistent = false,			  -- true or false to make the widget carry values between sessions and models (not safe imho)
-        }
+            }
   )
 
 end
