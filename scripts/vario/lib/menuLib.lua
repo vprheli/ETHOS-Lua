@@ -21,58 +21,63 @@
 --           ----------  ------- -------- ------------------------------------
 --           23.01.2025  0.0.1   VPRHELI  initial version
 --           27.01.2025  1.0.0   VPRHELI  minor changes
+--           21.10.2025  1.1.0   andreaskuhl  feature: min/max values display
 -- =============================================================================
 
 local menuLib     = {}
 local conf        = nil
 local libs        = nil
 
--- #################################################################### 
+-- ####################################################################
 -- # menuLib.init                                                     #
 -- ####################################################################
 function menuLib.init(param_conf, param_libs)
   --print ("### menuLib.init()")
-  conf   = param_conf  
+  conf   = param_conf
   libs   = param_libs
 
   return menuLib
-end 
+end
 
--- #################################################################### 
+-- ####################################################################
 -- # menuLib.configure                                                #
 -- #    Widget Configuration options                                  #
--- #################################################################### 
+-- ####################################################################
 function menuLib.configure(widget)
   print ("### menuLib.configure()")
-  
+
   local cellsEnabled = widget.VoltageSensor
   -- Battery Capacity Version
   line = form.addLine(libs.utils.translate ("menuname") .. "  " .. conf.version)
-  
+
   -- Vario Sensor
   line = form.addLine(libs.utils.translate("VarioSensor"))
-  form.addSourceField(line, nil, function() return widget.VarioSensor end, 
+  form.addSourceField(line, nil, function() return widget.VarioSensor end,
                                  function (value)
                                     if value:name() == "---" then
                                       widget.VarioSensor = nil
                                     else
                                       widget.VarioSensor = value
                                     end
-                                 end) 
+                                 end)
 
-  -- Vertical Speed Sensor  
+  -- Vertical Speed Sensor
   line = form.addLine(libs.utils.translate("VertSensor"))
-  form.addSourceField(line, nil, function() return widget.VerticalSensor end, 
+  form.addSourceField(line, nil, function() return widget.VerticalSensor end,
                                  function (value)
                                     if value:name() == "---" then
                                       widget.VerticalSensor = nil
                                     else
                                       widget.VerticalSensor = value
                                     end
-                                 end) 
+                                 end)
   -- Background color
   line = form.addLine(libs.utils.translate("bgcolor"))
   form.addColorField(line, nil, function() return widget.bgcolor end, function(color) widget.bgcolor = color end)
+
+  -- Show Min/Max
+  line = form.addLine(libs.utils.translate("showMinMax"))
+  form.addBooleanField(line, nil, function() return widget.showMinMax end, function(value) widget.showMinMax = value end)
 
 end
 
