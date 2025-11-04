@@ -24,6 +24,7 @@
 --           16.02.2025  1.0.1   VPRHELI  removing opacity bitmaps, use opacity color
 --           21.10.2025  1.1.0   andreaskuhl  feature: min/max values display
 --           21.10.2025  1.1.1   andreaskuhl  optimize altitude value frame
+--           04.11.2025  1.1.2   andreaskuhl  red negative values and some refactoring
 -- =============================================================================
 -- Snsor IDs
 -- https://openrcforums.com/forum/viewtopic.php?t=5701

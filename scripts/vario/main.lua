@@ -28,6 +28,7 @@
 --           07.10.2025  1.0.5   VPRHELI  switching widget using rotation encoder bug fix
 --           21.10.2025  1.1.0   andreaskuhl  feature: min/max values display
 --           21.10.2025  1.1.1   andreaskuhl  optimize altitude value frame
+--           04.11.2025  1.1.2   andreaskuhl  red negative values and some refactoring
 -- =============================================================================
 --
 -- The latest version can always be found at https://github.com/vprheli/ETHOS-Lua
@@ -36,7 +37,7 @@
 --
 -- TODO
 
-local version           = "v1.1.1"
+local version           = "v1.1.2"
 local environment       = system.getVersion()
 -- load translate table from external file
 local tableFile  = assert(loadfile("translate.lua"))() --  work with relative path
