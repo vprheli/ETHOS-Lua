@@ -28,8 +28,11 @@
 --           17.02.2025  2.0.3   VPRHELI  Reset Home position only if widget visible
 --           04.03.2025  2.0.4   VPRHELI  translate table fix
 --           09.04.2025  2.0.5   VPRHELI  removed map limit count
+--           07.02.2026  2.0.6   VPRHELI  unsupported language fix, French language supported
 -- =============================================================================
 --
+-- Warm thanks to my colleague Yannick F for the French translation
+
 --    From version HL4GPSMAP 2.0.1 onwards, use at least ETHOS 1.6.1
 --
 -- The modification of the original, no longer supported widget, allows you to use up to 32 map sources.
@@ -67,7 +70,7 @@
 ------------------------------------------------------------------------------------------------
 -- Set up of variables used in whole scope
 ------------------------------------------------------------------------------------------------
-local Version           = "v2.0.5"
+local Version           = "v2.0.6"
 local mapImage                  -- Global use of map image
 local Windsock                  -- Global use of windsock image
 local DMSLatString      = ""    -- Global DMS Latitude string
@@ -97,7 +100,7 @@ local function translate(key)
       return transtable[g_locale][key]
     else
       -- if language is not available, return key
-      return key
+      return transtable["en"][key]
     end
 end
 ------------------------------------------------------------------------------------------------
