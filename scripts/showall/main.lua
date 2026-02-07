@@ -25,6 +25,7 @@
 --           17.02.2025  1.0.3   VPRHELI  RSSI new model fix, fill channel sliders, DE translate table
 --           04.03.2025  1.0.4   VPRHELI  translate table fix
 --           08.08.2025  1.0.5   VPRHELI  Timers count fix
+--           27.02.2026  1.0.6   VPRHELI  unsupported language fix
 -- =============================================================================
 --
 -- Comment: Code is optimized for X20/X18 single zone (not full screen)
@@ -41,7 +42,7 @@
 -- X12 HORUS    480x272   SA-SH       6        4           6              yes           yes
 -- X10 HORUS    480x272   SA-SH       4        2  
 
-local version    = "v1.0.5"
+local version    = "v1.0.6"
 local tableFile  = assert(loadfile("/scripts/showall/translate.lua"))()
 local transtable = tableFile.transtable
 -- ========= LOCAL VARIABLES =============
@@ -71,8 +72,8 @@ local function translate(key)
     if transtable[g_locale] and transtable[g_locale][key] then
       return transtable[g_locale][key]
     else
-      -- if language is not available, return key
-      return key
+      -- if language is not available, return english text
+      return transtable["en"][key]
     end
 end
 -- ####################################################################

@@ -23,11 +23,13 @@
 --           28.01.2025  1.0.1   VPRHELI  Getting timer value, HW different in simulator
 --           23.02.2025  1.0.3   VPRHELI  separate translate table
 --           04.03.2025  1.0.4   VPRHELI  translate table fix
+--           07.10.2025  1.0.5   VPRHELI  switching widget using rotation encoder bug fix
+--           27.02.2026  1.0.6   VPRHELI  unsupported language fix
 -- =============================================================================
 --
 -- TODO
 
-local version           = "v1.0.4"
+local version           = "v1.0.6"
 local environment       = system.getVersion()
 -- load translate table from external file
 local tableFile  = assert(loadfile("/scripts/digclock/translate.lua"))()

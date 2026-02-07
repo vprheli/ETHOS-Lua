@@ -26,6 +26,7 @@
 --           04.03.2025  1.0.3   VPRHELI  translate table fix
 --           03.09.2025  1.0.4   VPRHELI  background color storage fix (thanks Andreas), Italian translation
 --           07.10.2025  1.0.5   VPRHELI  switching widget using rotation encoder bug fix
+--           27.02.2026  1.0.6   VPRHELI  unsupported language fix
 -- =============================================================================
 --
 -- The latest version can always be found at https://github.com/vprheli/ETHOS-Lua
@@ -34,7 +35,7 @@
 --
 -- TODO
 
-local version           = "v1.0.5"
+local version           = "v1.0.6"
 local environment       = system.getVersion()
 -- load translate table from external file
 local tableFile  = assert(loadfile("/scripts/vario/translate.lua"))()

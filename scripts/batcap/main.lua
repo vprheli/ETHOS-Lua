@@ -27,13 +27,15 @@
 --           17.02.2025  1.0.4   VPRHELI  Only VFAS sensor bug
 --           04.03.2025  1.0.5   VPRHELI  translate table fix
 --           19.04.2025  1.0.6   VPRHELI  current max if sensor not detected
+--           07.10.2025  1.0.7   VPRHELI  switching widget using rotation encoder bug fix
+--           27.02.2026  1.0.8   VPRHELI  unsupported language fix
 -- =============================================================================
 --
 -- TODO
 -- carbon background - taken from the net and height according to the lowest widget - I would name it carbon.bmp
 -- white background
 
-local version           = "v1.0.6"
+local version           = "v1.0.8"
 local environment       = system.getVersion()
 -- load translate table from external file
 local tableFile  = assert(loadfile("/scripts/batcap/translate.lua"))()

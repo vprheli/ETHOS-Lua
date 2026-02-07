@@ -21,6 +21,7 @@
 --           ----------  ------- -------- ------------------------------------
 --           23.01.2025  0.0.1   VPRHELI  initial version
 --           27.01.2025  1.0.0   VPRHELI  minor changes
+--           27.02.2026  1.0.6   VPRHELI  unsupported language fix
 -- =============================================================================
 
 local utils   = {}
@@ -49,8 +50,8 @@ function utils.translate(key)
     if transtable[locale] and transtable[locale][key] then
       return transtable[locale][key]
     else
-      -- if language is not available, return key
-      return key
+      -- if language is not available, return english text
+      return transtable["en"][key]
     end
 end
 -- #################################################################### 

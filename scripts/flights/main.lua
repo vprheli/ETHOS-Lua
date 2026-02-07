@@ -24,13 +24,14 @@
 --           07.08.2025  1.1.0   VPRHELI  history total flight counter, Italian language supported
 --           08.08.2025  1.1.1   VPRHELI  reset flight update file immedietly
 --           14.08.2025  1.1.2   VPRHELI  correct flight counter bug
+--           27.02.2026  1.1.3   VPRHELI  unsupported language fix
 -- =============================================================================
 --
 -- The latest version can always be found at https://github.com/vprheli/ETHOS-Lua
 --
 -- Warm thanks to my Italian colleague Francesco Salvi for the translation into Italian
 --
-local version      = "v1.1.2"
+local version      = "v1.1.3"
 local g_filesPath  = "/scripts/flights/Files/"
 local g_locale     = system.getLocale()
 -- load translate table from external file
@@ -46,8 +47,8 @@ local function translate(key)
     if transtable[g_locale] and transtable[g_locale][key] then
       return transtable[g_locale][key]
     else
-      -- if language is not available, return key
-      return key
+      -- if language is not available, return english text
+      return transtable["en"][key]
     end
 end
 -- #################################################################### 
