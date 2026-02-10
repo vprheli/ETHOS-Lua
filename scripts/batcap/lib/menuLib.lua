@@ -120,10 +120,6 @@ function menuLib.configure(widget)
                                     end
                                  end)     
   
-  -- Some color
-  line = form.addLine(libs.utils.translate("color1"))
-  form.addColorField(line, nil, function() return widget.color1 end, function(color) widget.color1 = color end)
-
 end
 
 return menuLib

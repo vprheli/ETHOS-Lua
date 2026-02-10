@@ -23,6 +23,7 @@
 --           27.01.2025  1.0.0   VPRHELI  minor changes
 --           07.02.2025  1.0.2   VPRHELI  LiOn and LiFePo4 voltage capacity table changed
 --           17.02.2025  1.0.4   VPRHELI  Only VFAS sensor bug
+--           08.02.2026  1.1.0   VPRHELI  common util.lua, widget paint type zone size detection
 -- =============================================================================
 -- Snsor IDs
 -- https://openrcforums.com/forum/viewtopic.php?t=5701
@@ -53,90 +54,57 @@ function batLib.init(param_conf, param_libs)
   
   return batLib
 end
--- #################################################################### 
--- #  batLib.CheckEnvironment                                         #
--- #    Read environment varibles                                     #
--- #################################################################### 
-function batLib.CheckEnvironment (widget)
-  local w, h = lcd.getWindowSize()
- 
-  if widget.screenHeight == nil or (w ~= widget.zoneWidth and h ~= widget.zoneHeight) then
-    -- environment changed
-    conf.darkMode = lcd.darkMode() 	
+-- ####################################################################
+-- #  batLib.SetZoneMatrix                                            #
+-- #    Set zone dimensions matrix                                    #
+-- ####################################################################
+function batLib.SetZoneMatrix (widget)
+  local sizeArr = {"empty800480.png", "empty480320.png"}
+  
+  lcd.font(FONT_XL)
+  text_w, text_h = lcd.getTextSize("100%")
+  
+  for i = 1, #sizeArr do
+    local batteryIcon = libs.utils.loadBitmap(sizeArr[i])
+    widget.zoneMatrix[i] = {}
+    widget.zoneMatrix[i][0] = batteryIcon:width()  + widget.battVwidth
+    widget.zoneMatrix[i][1] = batteryIcon:height() + text_h     
+  end
+end
+-- ####################################################################
+-- #  batLib.SetZoneParam                                             #
+-- #    Set zone paint parameters based on widget.zoneID              #
+-- ####################################################################
+function batLib.SetZoneParam (widget)
+  --print ("### digLib.SetZoneParam ()")  
 
-    local version = system.getVersion()
-    widget.screenHeight = version.lcdHeight
-    widget.screenWidth  = version.lcdWidth
-    conf.simulation     = version.simulation
-    conf.transmitter    = version.board
-    conf.modelName      = model.name()
-    
-    widget.zoneHeight = h
-    widget.zoneWidth  = w
-    
-    if widget.zoneWidth == 800 and widget.zoneHeight == 480 or widget.zoneWidth == 800 and widget.zoneHeight == 458 then
-      widget.screenType = "X20fullScreen"                            -- battery icon 198x350
-      widget.batteryIcon = libs.utils.loadBitmap("empty800480.png")
-      widget.battW   = 198                                           -- battery large icon Width      ------------------   0    
-      widget.battH   = 350                                           -- battery large icon Height     --       30     --
-      widget.battX   = 50                                            -- battery X position            ------------------  30
-      widget.battY   = (widget.zoneHeight - 350) / 3                 -- battery Y position            --              --
-      widget.battfdX = 3                                             -- battery fill dX               --      303     --
-      widget.battfdY = 30                                            -- battery fill dY               ------------------ 333
-      widget.battfW  = 190                                           -- battery fill Width            --       17     --
-      widget.battfH  = 303                                           -- battery fill Height           ------------------ 350
-    elseif widget.zoneWidth == 784 and widget.zoneHeight == 316 or widget.zoneWidth == 784 and widget.zoneHeight == 294 then
-      widget.screenType = "X20fullScreenWithTitle"                   -- battery icon 111x200
-      widget.batteryIcon = libs.utils.loadBitmap("empty480320.png")
-      widget.battW   = 113                                           -- battery small icon Width      ------------------   0 
-      widget.battH   = 200                                           -- battery small icon Height     --      17      --     
-      widget.battX   = 50                                            -- battery X position            ------------------  17 
-      widget.battY   = (widget.zoneHeight - 200) / 3                 -- battery Y position            --              --     
-      widget.battfdX = 1                                             -- battery fill dX               --     173      --     
-      widget.battfdY = 17                                            -- battery fill dY               ------------------ 190 
-      widget.battfW  = 111                                           -- battery fill Width            --      10      --     
-      widget.battfH  = 173                                           -- battery fill Height           ------------------ 200 
-    elseif widget.zoneWidth == 388 and widget.zoneHeight == 316 or widget.zoneWidth == 388 and widget.zoneHeight == 294 then
-      widget.screenType = "X20halfScreen"
-      widget.batteryIcon = libs.utils.loadBitmap("empty480320.png")
-      widget.battW   = 113                                           -- battery small icon Width      ------------------   0    
-      widget.battH   = 200                                           -- battery small icon Height     --      17      --    
-      widget.battX   = (widget.zoneWidth - widget.battW - widget.battVwidth) / 3                      ------------------  17    
-      widget.battY   = (widget.zoneHeight - 200) / 3                 -- battery Y position            --              --    
-      widget.battfdX = 1                                             -- battery fill dX               --     173      --    
-      widget.battfdY = 17                                            -- battery fill dY               ------------------ 190    
-      widget.battfW  = 111                                           -- battery fill Width            --      10      --    
-      widget.battfH  = 173                                           -- battery fill Height           ------------------ 200    
-    elseif widget.zoneWidth == 300 and widget.zoneHeight == 280 or widget.zoneWidth == 300 and widget.zoneHeight == 258 then
-      widget.screenType = "X20halfSreenWithSliders"    
-      widget.batteryIcon = libs.utils.loadBitmap("empty480320.png")
-      widget.battW   = 113                                           -- battery small icon Width      ------------------   0
-      widget.battH   = 200                                           -- battery small icon Height     --      17      --
-      widget.battX   = (widget.zoneWidth - widget.battW - widget.battVwidth) / 3                      ------------------  17
-      widget.battY   = (widget.zoneHeight - 200) / 3                 -- battery Y position            --              --
-      widget.battfdX = 1                                             -- battery fill dX               --     173      --
-      widget.battfdY = 17                                            -- battery fill dY               ------------------ 190
-      widget.battfW  = 111                                           -- battery fill Width            --      10      --
-      widget.battfH  = 173                                           -- battery fill Height           ------------------ 200
-    elseif widget.zoneWidth == 256 and widget.zoneHeight == 316 or widget.zoneWidth == 256 and widget.zoneHeight == 294 then
-      widget.screenType = "X20thirdScreen"     
-      widget.batteryIcon = libs.utils.loadBitmap("empty480320.png")
-      widget.battW   = 113                                           -- battery small icon Width      ------------------   0
-      widget.battH   = 200                                           -- battery small icon Height     --      17      --
-      widget.battX   = (widget.zoneWidth - widget.battW - widget.battVwidth) / 3                      ------------------  17
-      widget.battY   = (widget.zoneHeight - 200) / 3                 -- battery Y position            --              --
-      widget.battfdX = 1                                             -- battery fill dX               --     173      --
-      widget.battfdY = 17                                            -- battery fill dY               ------------------ 190
-      widget.battfW  = 111                                           -- battery fill Width            --      10      --
-      widget.battfH  = 173                                           -- battery fill Height           ------------------ 200
-    else
-      widget.screenType = "Wrongwgt"
-    end
-    -- not tested and supported yet
-    -- 480x722  "X10fullScreen" ??
-    -- 480x320  "X18fullScreen"
-    -- 640x360  "X10fullScreen" ??
-    --libs.utils.dumpResolution (widget)
+  conf.darkMode = lcd.darkMode()
+  local version = system.getVersion()
+
+  widget.screenHeight = version.lcdHeight
+  widget.screenWidth  = version.lcdWidth
+  conf.simulation     = version.simulation
+  
+  if widget.zoneID == 1 then       
+    widget.batteryIcon = libs.utils.loadBitmap("empty800480.png")
+    widget.battW   = widget.batteryIcon:width()                    -- battery large icon Width      ------------------   0    
+    widget.battH   = widget.batteryIcon:height()                   -- battery large icon Height     --       30     --
+    widget.battX   = 50                                            -- battery X position            ------------------  30
+    widget.battY   = (widget.zoneHeight - 350) / 3                 -- battery Y position            --              --
+    widget.battfdX = 3                                             -- battery fill dX               --      303     --
+    widget.battfdY = 30                                            -- battery fill dY               ------------------ 333
+    widget.battfW  = 190                                           -- battery fill Width            --       17     --
+    widget.battfH  = 303                                           -- battery fill Height           ------------------ 350
+  elseif widget.zoneID == 2 then
+    widget.batteryIcon = libs.utils.loadBitmap("empty480320.png")
+    widget.battW   = widget.batteryIcon:width()                    -- battery small icon Width      ------------------   0 
+    widget.battH   = widget.batteryIcon:height()                   -- battery small icon Height     --      17      --     
+    widget.battX   = (widget.zoneWidth - widget.battW - widget.battVwidth) / 3                      ------------------  17 
+    widget.battY   = (widget.zoneHeight - 200) / 3                 -- battery Y position            --              --     
+    widget.battfdX = 1                                             -- battery fill dX               --     173      --     
+    widget.battfdY = 17                                            -- battery fill dY               ------------------ 190 
+    widget.battfW  = 111                                           -- battery fill Width            --      10      --     
+    widget.battfH  = 173                                           -- battery fill Height           ------------------ 200 
   end
 end
 -- #################################################################### 
@@ -215,10 +183,7 @@ function batLib.readSensors(widget)
     local sensorA = widget.CurrentSensor
     if sensorA ~= nil then
       widget.current = sensorA:value()
-      -- calculate current max
-      if widget.current ~= nil and widget.current > widget.currMax then
-        widget.currMax = widget.current
-      end
+      widget.currMax = sensorA:value({options=OPTION_SENSOR_MAX})
     else
       widget.current = nil
       widget.currMax = 0
@@ -237,10 +202,8 @@ function batLib.readSensors(widget)
     if widget.FlightReset == 1 then
       widget.FlightReset = 0
       widget.batPowMax   = 0
-      widget.currMax     = 0     
       --print("#### Flight Reset ####")
     end
-    --libs.utils.dumpSensorLiPo (sensor)
   end
 end
 -- #################################################################### 
@@ -284,7 +247,13 @@ function batLib.paintBattery (widget)
   -- * formatNumber               paintBattery() local  *
   -- ********************************************************
   local function formatNumber(value, format)
-    return string.format(format, value)
+    local retval
+    if value ~= nil then
+      retval = string.format(format, value)
+    else
+      retval = "---"
+    end
+    return retval
   end
   -- ********************************************************
   -- * drawBatteryVoltage         paintBattery() local  *
@@ -337,7 +306,7 @@ function batLib.paintBattery (widget)
   -- ********************************************************
   local function drawBatteryCurrent(widget)
     if widget.CurrentSensor ~= nil then
-      if widget.screenType == "X20fullScreen" or widget.screenType == "X20fullScreenWithTitle" then
+      if widget.zoneID == 1 then
         -- xxxxxxxxxxxxxxxx
         -- x  full frame  x  
         -- xxxxxxxxxxxxxxxx
@@ -531,7 +500,7 @@ end
 -- # batLib.paint                                                     #
 -- ####################################################################
 function batLib.paint (widget)
-  libs.batLib.CheckEnvironment (widget)
+  --libs.batLib.CheckEnvironment (widget)
   libs.batLib.readSensors(widget)
   -- force black background
   lcd.color(COLOR_BLACK)
@@ -602,7 +571,7 @@ function batLib.paint (widget)
     end
   end
   
-  if widget.screenType ~= "Wrongwgt" then
+  if widget.zoneID ~= 0 then
     if (widget.LipoSensor ~= nil) or (widget.VoltageSensor ~= nil) then
       batLib.paintBattery (widget)         
     else
@@ -611,13 +580,6 @@ function batLib.paint (widget)
   else
     libs.utils.printError (widget, "wgtsmall")
   end
-  
---  if conf.simulation == true then
---    lcd.font(FONT_S)
---    lcd.color(widget.color1)
---    text_w, text_h = lcd.getTextSize("")
---    lcd.drawText(widget.zoneWidth - widget.noTelFrameT, widget.zoneHeight - text_h - widget.noTelFrameT, widget.zoneWidth.."x"..widget.zoneHeight, TEXT_RIGHT)
---  end
 end
 
 return batLib

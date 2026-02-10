@@ -24,12 +24,13 @@
 --           23.02.2025  1.0.3   VPRHELI  separate translate table
 --           04.03.2025  1.0.4   VPRHELI  translate table fix
 --           07.10.2025  1.0.5   VPRHELI  switching widget using rotation encoder bug fix
---           27.02.2026  1.0.6   VPRHELI  unsupported language fix
+--           07.02.2026  1.0.6   VPRHELI  unsupported language fix
+--           08.02.2026  1.1.0   VPRHELI  common util.lua, widget paint type zone size detection
 -- =============================================================================
 --
 -- TODO
 
-local version           = "v1.0.6"
+local version           = "v1.1.0"
 local environment       = system.getVersion()
 -- load translate table from external file
 local tableFile  = assert(loadfile("/scripts/digclock/translate.lua"))()
@@ -53,6 +54,7 @@ local g_libInitDone    = false
                 version        = version,
                 locale         = system.getLocale(),
                 basePath       = "/scripts/digclock/",
+                commonPath     = "/scripts/common/",
                 libFolder      = "lib/",
                 imgFolder      = "img/",
                 transtable     = transtable,
@@ -69,8 +71,13 @@ local g_updates_per_second = 2                -- how many times per second displ
 -- ####################################################################
 -- # loadLibrary                                                      #
 -- ####################################################################
-function loadLibrary(filename)
-  local lib = dofile(conf.basePath .. conf.libFolder .. filename..".lua")
+function loadLibrary(filename, isCommon)
+  local lib
+  if isCommon == false then
+    lib = dofile(conf.basePath .. conf.libFolder .. filename..".lua")
+  else 
+    lib = dofile(conf.commonPath .. filename..".lua")
+  end
   if lib.init ~= nil then
     lib.init(conf, libs)
   end
@@ -92,9 +99,9 @@ local function initLibraries(widget)
   if g_libInitDone == false then
     g_libInitDone = true
     -- load libraries
-    libs.utils   = loadLibrary("utils")
-    libs.menuLib = loadLibrary("menuLib")
-    libs.digLib  = loadLibrary("digLib")
+    libs.utils   = loadLibrary("utils",   true)
+    libs.menuLib = loadLibrary("menuLib", false)
+    libs.digLib  = loadLibrary("digLib",  false)
   end
 end
 -- ####################################################################
@@ -127,7 +134,8 @@ local function create()
             screenWidth    = nil,
             zoneHeight     = nil,
             zoneWidth      = nil,
-            screenType     = "",
+            zoneID         = 0,     -- zone ID defines paint procedure
+            zoneMatrix     = {},
             iconX          = nil,
             iconW          = nil,
             iconH          = nil,
@@ -135,7 +143,7 @@ local function create()
             iconColW       = nil,
             icon_dX        = nil,
             last_time      = 0,
-            noTelFrameT    = 3,      -- thickness of no telemetry frame
+            noTelFrameT    = 3,     -- thickness of no telemetry frame
           }
 end
 -- ####################################################################
@@ -167,8 +175,8 @@ end
 local function configure(widget)
   --print ("### function configure()")
   libs.menuLib.configure (widget)
-  widget.screenHeight = nil         -- force digLib.CheckEnvironment (widget)
-  widget.swMember     = nil
+  widget.initPending = true    -- force reinitialize zone parameters
+  widget.swMember    = nil
 end
 -- ####################################################################
 -- # read                                                             #
@@ -188,6 +196,7 @@ end
 -- #    write values to internal storage                              #
 -- ####################################################################
 local function write(widget)
+  --print ("### function write()")  
   storage.write("StopWatch"    , widget.StopWatch)
   storage.write("segmentColor" , widget.segmentColor)
 	storage.write("bgcolor"      , widget.bgcolor)
@@ -214,6 +223,9 @@ local function wakeup(widget)
   local actual_time = os.clock()  -- Získání aktuálního času
 
   if widget.initPending == true then
+    libs.digLib.SetZoneMatrix(widget)
+    libs.utils.GetZoneID (widget)
+    libs.digLib.SetZoneParam(widget)    
     -- TODO if necesssary
     widget.runBgTasks  = true
     widget.initPending = false
@@ -224,6 +236,9 @@ local function wakeup(widget)
     if actual_time > widget.last_time then
       widget.last_time = actual_time + 1 / g_updates_per_second   -- new time for widget refresh
       if lcd.isVisible() then
+        if libs.utils.GetZoneID (widget) then                     -- detection layout change
+          libs.digLib.SetZoneParam(widget)  
+        end
         lcd.invalidate ();                                        -- full screen refresh
       end
     end

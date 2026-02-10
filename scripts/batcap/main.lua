@@ -29,13 +29,14 @@
 --           19.04.2025  1.0.6   VPRHELI  current max if sensor not detected
 --           07.10.2025  1.0.7   VPRHELI  switching widget using rotation encoder bug fix
 --           27.02.2026  1.0.8   VPRHELI  unsupported language fix
+--           08.02.2026  1.1.0   VPRHELI  common util.lua, widget paint type zone size detection
 -- =============================================================================
 --
 -- TODO
 -- carbon background - taken from the net and height according to the lowest widget - I would name it carbon.bmp
 -- white background
 
-local version           = "v1.0.8"
+local version           = "v1.1.0"
 local environment       = system.getVersion()
 -- load translate table from external file
 local tableFile  = assert(loadfile("/scripts/batcap/translate.lua"))()
@@ -53,6 +54,7 @@ local g_libInitDone = false
                 version        = version,
                 locale         = system.getLocale(),
                 basePath       = "/scripts/batcap/",
+                commonPath     = "/scripts/common/",                
                 libFolder      = "lib/",
                 imgFolder      = "img/",
                 modelName      = nil,
@@ -71,8 +73,13 @@ local g_updates_per_second = 1                -- how many times per second displ
 -- #################################################################### 
 -- # loadLibrary                                                      #
 -- ####################################################################
-function loadLibrary(filename)
-  local lib = dofile(conf.basePath .. conf.libFolder .. filename..".lua")
+function loadLibrary(filename, isCommon)
+  local lib
+  if isCommon == false then
+    lib = dofile(conf.basePath .. conf.libFolder .. filename..".lua")
+  else 
+    lib = dofile(conf.commonPath .. filename..".lua")
+  end
   if lib.init ~= nil then
     lib.init(conf, libs)
   end
@@ -94,9 +101,9 @@ local function initLibraries(widget)
   if g_libInitDone == false then
     g_libInitDone = true
     -- load libraries
-    libs.utils   = loadLibrary("utils")
-    libs.menuLib = loadLibrary("menuLib")
-    libs.batLib  = loadLibrary("batLib")
+    libs.utils   = loadLibrary("utils",   true)
+    libs.menuLib = loadLibrary("menuLib", false)
+    libs.batLib  = loadLibrary("batLib",  false)
   end   
 end
 -- #################################################################### 
@@ -130,7 +137,6 @@ local function create()
           batCapmAh      = 0,
           FlightReset    = 0,          -- should be zero
           -- config
-          color1         = lcd.RGB(0xEA, 0x5E, 0x00),   
           transtable     = transtable,
           -- status
           initPending    = true,
@@ -141,15 +147,16 @@ local function create()
           screenWidth    = nil, 
           zoneHeight     = nil,
           zoneWidth      = nil,
-          battX          = nil,      -- battery large icon X position update in CheckEnvironment()
-          battY          = nil,      -- battery large icon Y position update in CheckEnvironment()
-          battW          = nil,      -- battery large icon Width      update in CheckEnvironment()
-          battH          = nil,      -- battery large icon Height     update in CheckEnvironment()
-          battfdX        = nil,      -- battery fill dX               update in CheckEnvironment()
-          battfdY        = nil,      -- battery fill dY               update in CheckEnvironment()
-          battfW         = nil,      -- battery fill Width            update in CheckEnvironment()
-          battfH         = nil,      -- battery fill Height           update in CheckEnvironment()
-          screenType     = "",
+          zoneID         = 0,         -- zone ID defines paint procedure
+          zoneMatrix     = {},          
+          battX          = nil,      -- battery large icon X position update in SetZoneParam()
+          battY          = nil,      -- battery large icon Y position update in SetZoneParam()
+          battW          = nil,      -- battery large icon Width      update in SetZoneParam()
+          battH          = nil,      -- battery large icon Height     update in SetZoneParam()
+          battfdX        = nil,      -- battery fill dX               update in SetZoneParam()
+          battfdY        = nil,      -- battery fill dY               update in SetZoneParam()
+          battfW         = nil,      -- battery fill Width            update in SetZoneParam()
+          battfH         = nil,      -- battery fill Height           update in SetZoneParam()
           flash          = 0,        -- flash voltage rectangle YELLOW / RED if telemetry lost
           last_time      = 0,
           battVwidth     = 130,      -- battery voltage/current frame width
@@ -191,7 +198,7 @@ end
 local function configure(widget)
   --print ("### function configure()")
   libs.menuLib.configure (widget)
-  widget.screenHeight = nil         -- force batLib.CheckEnvironment (widget)  
+  widget.initPending = true    -- force reinitialize zone parameters  
 end
 -- #################################################################### 
 -- # read                                                             #
@@ -205,7 +212,6 @@ local function read(widget)
   widget.VoltageSensor            = storage.read("VoltageSensor")
   widget.VFAScells                = storage.read("VFAScells")
   widget.CurrentSensor            = storage.read("CurrentSensor")
-  widget.color1                   = storage.read("color1")
   
 	return true
 end
@@ -221,7 +227,6 @@ local function write(widget)
 	storage.write("VoltageSensor" , widget.VoltageSensor)  
   storage.write("VFAScells"     , widget.VFAScells)  
   storage.write("CurrentSensor" , widget.CurrentSensor)  
-	storage.write("color1"        , widget.color1)
 
 	return true
 end
@@ -244,6 +249,10 @@ local function wakeup(widget)
   local actual_time = os.clock()  -- Získání aktuálního času
   
   if widget.initPending == true then
+    libs.batLib.SetZoneMatrix(widget)
+    libs.utils.GetZoneID (widget)
+    print("### Get Zone ID : " .. widget.zoneID)
+    libs.batLib.SetZoneParam(widget)     
     -- TODO if necesssary
     widget.runBgTasks  = true
     widget.initPending = false
@@ -266,6 +275,9 @@ local function wakeup(widget)
     if actual_time > widget.last_time then
       widget.last_time = actual_time + 1 / g_updates_per_second   -- new time for widget refresh
       if lcd.isVisible() then
+        if libs.utils.GetZoneID (widget) then                     -- detection layout change
+          libs.batLib.SetZoneParam(widget)  
+        end        
         lcd.invalidate ()                                         -- full screen refresh
       end
     end

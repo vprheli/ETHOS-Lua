@@ -42,7 +42,7 @@ end
 -- #    Widget Configuration options                                  #
 -- ####################################################################
 function menuLib.configure(widget)
-  print ("### menuLib.configure()")
+  --print ("### menuLib.configure()")
 
   -- Battery Capacity Version
   line = form.addLine(libs.utils.translate ("menuname") .. "  " .. conf.version)

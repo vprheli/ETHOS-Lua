@@ -20,6 +20,8 @@
 -- History : Date        Version Author   Comment
 --           ----------  ------- -------- ------------------------------------
 --           23.01.2025  1.0.0   VPRHELI  initial version
+--           08.02.2026  1.0.1   VPRHELI  set parameters for zoneID
+--           08.02.2026  1.1.0   VPRHELI  common util.lua, widget paint type zone size detection
 -- =============================================================================
 -- Snsor IDs
 -- https://openrcforums.com/forum/viewtopic.php?t=5701
@@ -83,131 +85,56 @@ function digLib.GetColorText (index)
   return colorText
 end
 -- ####################################################################
--- #  digLib.CheckEnvironment                                         #
--- #    Read environment varibles                                     #
+-- #  digLib.SetZoneMatrix                                            #
+-- #    Set zone dimensions matrix                                    #
 -- ####################################################################
-function digLib.CheckEnvironment (widget)
-  local w, h = lcd.getWindowSize()
+function digLib.SetZoneMatrix (widget)
+  local sizeArr = {134, 80, 48, 34}
+  for i = 1, #sizeArr do
+    local digit0   = digLib.loadBitmap(string.format("/%s/%d-%d.png",  "red", sizeArr[i], 0))
+    local digitCol = digLib.loadBitmap(string.format("/%s/%d-col.png", "red", sizeArr[i]))
+    widget.zoneMatrix[i] = {}
+    widget.zoneMatrix[i][0] = 4 * digit0:width() + digitCol:width()     --[i][0] minimal width (no digits space)
+    widget.zoneMatrix[i][1] = digit0:height()                           --[i][1] minimal height
+  end
+end
+-- ####################################################################
+-- #  digLib.SetZoneParam                                             #
+-- #    Set zone paint parameters based on widget.zoneID              #
+-- ####################################################################
+function digLib.SetZoneParam (widget)
+  --print ("### digLib.SetZoneParam ()")  
 
-  if widget.screenHeight == nil or (w ~= widget.zoneWidth and h ~= widget.zoneHeight) then
-    -- environment changed
-    conf.darkMode = lcd.darkMode()
-    local version = system.getVersion()
+  conf.darkMode = lcd.darkMode()
+  local version = system.getVersion()
 
-    widget.screenHeight = version.lcdHeight
-    widget.screenWidth  = version.lcdWidth
-    conf.simulation     = version.simulation
+  widget.screenHeight = version.lcdHeight
+  widget.screenWidth  = version.lcdWidth
+  conf.simulation     = version.simulation
 
-    widget.zoneHeight = h
-    widget.zoneWidth  = w
-
-    if widget.zoneWidth == 800 and widget.zoneHeight == 480 or widget.zoneWidth == 800 and widget.zoneHeight == 458 then
-      widget.screenType = "X20fullScreen"
-      widget.digits   = digLib.loadDigits(digLib.GetColorText (widget.segmentColor), 134)       -- segment icon 134x221
-      widget.iconH    = 221
-      widget.iconW    = 134
-      widget.icon_dX  = 15
-      widget.iconColW = 62
-      local timeW     = 4 * widget.iconW + widget.iconColW + 4 * widget.icon_dX
-      widget.iconX    = math.floor((widget.zoneWidth  - timeW) / 2)
-      widget.iconY    = math.floor((widget.zoneHeight - widget.iconH) / 2)
-    elseif widget.zoneWidth == 784 and widget.zoneHeight == 316 or widget.zoneWidth == 784 and widget.zoneHeight == 294 then
-      widget.screenType = "X20fullScreenWithTitle"
-      widget.digits   = digLib.loadDigits(digLib.GetColorText (widget.segmentColor), 134)       -- segment icon 134x221
-      widget.iconH    = 221
-      widget.iconW    = 134
-      widget.icon_dX  = 15
-      widget.iconColW = 62
-      local timeW     = 4 * widget.iconW + widget.iconColW + 4 * widget.icon_dX
-      widget.iconX    = math.floor((widget.zoneWidth  - timeW) / 2)
-      widget.iconY    = math.floor((widget.zoneHeight - widget.iconH) / 2)
-    elseif widget.zoneWidth == 784 and widget.zoneHeight == 154 or widget.zoneWidth == 784 and widget.zoneHeight == 132 then
-      widget.screenType = "X20halfScreenVert"
-      widget.digits   = digLib.loadDigits(digLib.GetColorText (widget.segmentColor), 80)       -- segment icon 80x132
-      widget.iconH    = 132
-      widget.iconW    = 80
-      widget.icon_dX  = 15
-      widget.iconColW = 40
-      local timeW     = 4 * widget.iconW + widget.iconColW + 4 * widget.icon_dX
-      widget.iconX    = math.floor((widget.zoneWidth  - timeW) / 2)
-      widget.iconY    = math.floor((widget.zoneHeight - widget.iconH) / 2)
-    elseif widget.zoneWidth == 388 and widget.zoneHeight == 316 or widget.zoneWidth == 388 and widget.zoneHeight == 294 then
-      widget.screenType = "X20halfScreenHor"
-      widget.digits   = digLib.loadDigits(digLib.GetColorText (widget.segmentColor), 80)       -- segment icon 80x132
-      widget.iconH    = 132
-      widget.iconW    = 80
-      widget.icon_dX  = 7
-      widget.iconColW = 40
-      local timeW     = 4 * widget.iconW + widget.iconColW + 4 * widget.icon_dX
-      widget.iconX    = math.floor((widget.zoneWidth  - timeW) / 2)
-      widget.iconY    = math.floor((widget.zoneHeight - widget.iconH) / 2)
-    elseif widget.zoneWidth == 388 and widget.zoneHeight == 132 or widget.zoneWidth == 388 and widget.zoneHeight == 154 then
-      widget.screenType = "X20quadScreen"
-      widget.digits   = digLib.loadDigits(digLib.GetColorText (widget.segmentColor), 80)       -- segment icon 80x132
-      widget.iconH    = 132
-      widget.iconW    = 80
-      widget.icon_dX  = 7
-      widget.iconColW = 40
-      local timeW     = 4 * widget.iconW + widget.iconColW + 4 * widget.icon_dX
-      widget.iconX    = 0 --math.floor((widget.zoneWidth  - timeW) / 2)
-      widget.iconY    = math.floor((widget.zoneHeight - widget.iconH) / 2)
-    elseif widget.zoneWidth == 300 and widget.zoneHeight == 280 or widget.zoneWidth == 300 and widget.zoneHeight == 258 then
-      widget.screenType = "X20halfSreenWithSliders"
-      widget.digits   = digLib.loadDigits(digLib.GetColorText (widget.segmentColor), 48)       -- segment icon 48x78
-      widget.iconH    = 78
-      widget.iconW    = 48
-      widget.icon_dX  = 7
-      widget.iconColW = 24
-      local timeW     = 4 * widget.iconW + widget.iconColW + 4 * widget.icon_dX
-      widget.iconX    = math.floor((widget.zoneWidth  - timeW) / 2)
-      widget.iconY    = math.floor((widget.zoneHeight - widget.iconH) / 2)
-    elseif widget.zoneWidth == 300 and widget.zoneHeight == 114 or widget.zoneWidth == 300 and widget.zoneHeight == 136 then
-      widget.screenType = "X20quadSreenWithSliders"
-      widget.digits   = digLib.loadDigits(digLib.GetColorText (widget.segmentColor), 34)       -- segment icon 34x56
-      widget.iconH    = 56
-      widget.iconW    = 34
-      widget.icon_dX  = 7
-      widget.iconColW = 17
-      local timeW     = 4 * widget.iconW + widget.iconColW + 4 * widget.icon_dX
-      widget.iconX    = math.floor((widget.zoneWidth  - timeW) / 2)
-      widget.iconY    = math.floor((widget.zoneHeight - widget.iconH) / 2)
-    elseif widget.zoneWidth == 256 and widget.zoneHeight == 316 or widget.zoneWidth == 256 and widget.zoneHeight == 294 then
-      widget.screenType = "X20thirdScreenHigh"
-      widget.digits   = digLib.loadDigits(digLib.GetColorText (widget.segmentColor), 48)       -- segment icon 48x78
-      widget.iconH    = 78
-      widget.iconW    = 48
-      widget.icon_dX  = 7
-      widget.iconColW = 24
-      local timeW     = 4 * widget.iconW + widget.iconColW + 4 * widget.icon_dX
-      widget.iconX    = math.floor((widget.zoneWidth  - timeW) / 2)
-      widget.iconY    = math.floor((widget.zoneHeight - widget.iconH) / 2)
-    elseif widget.zoneWidth == 256 and widget.zoneHeight == 78 or widget.zoneWidth == 256 and widget.zoneHeight == 100 or
-           widget.zoneWidth == 256 and widget.zoneHeight == 132 or widget.zoneWidth == 256 and widget.zoneHeight == 154 then
-      widget.screenType = "X20thirdScreen"
-      widget.digits   = digLib.loadDigits(digLib.GetColorText (widget.segmentColor), 48)       -- segment icon 48x78
-      widget.iconH    = 78
-      widget.iconW    = 48
-      widget.icon_dX  = 7
-      widget.iconColW = 24
-      local timeW     = 4 * widget.iconW + widget.iconColW + 4 * widget.icon_dX
-      widget.iconX    = math.floor((widget.zoneWidth  - timeW) / 2)
-      widget.iconY    = math.floor((widget.zoneHeight - widget.iconH) / 2)
-    elseif widget.zoneWidth == 200 and widget.zoneHeight == 64 or widget.zoneWidth == 200 and widget.zoneHeight == 86 then
-      widget.digits   = digLib.loadDigits(digLib.GetColorText (widget.segmentColor), 34)       -- segment icon 34x56
-      widget.iconH    = 56
-      widget.iconW    = 34
-      widget.icon_dX  = 7
-      widget.iconColW = 17
-      local timeW     = 4 * widget.iconW + widget.iconColW + 4 * widget.icon_dX
-      widget.iconX    = math.floor((widget.zoneWidth  - timeW) / 2)
-      widget.iconY    = math.floor((widget.zoneHeight - widget.iconH) / 2)
-    else -- 256
-      widget.screenType = "Wrongwgt"
-    end
-    -- not tested and supported yet
-    -- 480x722  "X10fullScreen" ??
-    -- 480x320  "X18fullScreen"
-    -- 640x360  "X10fullScreen" ??
+  if widget.zoneID == 1 then  
+    widget.digits   = digLib.loadDigits(digLib.GetColorText (widget.segmentColor), 134)      -- segment icon 134x221
+  elseif widget.zoneID == 2 then
+    widget.digits   = digLib.loadDigits(digLib.GetColorText (widget.segmentColor), 80)       -- segment icon 80x132
+  elseif widget.zoneID == 3 then  
+    widget.digits   = digLib.loadDigits(digLib.GetColorText (widget.segmentColor), 48)       -- segment icon 48x78
+  elseif widget.zoneID == 4 then  
+    widget.digits   = digLib.loadDigits(digLib.GetColorText (widget.segmentColor), 34)       -- segment icon 34x56
+  end
+  if widget.zoneID > 0 then 
+    widget.iconH    = widget.digits[0]:height()
+    widget.iconW    = widget.digits[0]:width()
+    widget.iconColW = widget.digits[10]:width()      
+    widget.icon_dX  = math.floor((widget.zoneWidth - (4 * widget.iconW + widget.iconColW)) / 4)
+    local timeW     = 4 * widget.iconW + widget.iconColW + 4 * widget.icon_dX
+    widget.iconX    = math.floor((widget.zoneWidth  - timeW) / 2)
+    widget.iconY    = math.floor((widget.zoneHeight - widget.iconH) / 2)    
+  end 
+    
+  -- not tested and supported yet
+  -- 480x722  "X10fullScreen" ??
+  -- 480x320  "X18fullScreen"
+  -- 640x360  "X10fullScreen" ??
 
   -- If there is enough space, I will display the timer name
   lcd.font(FONT_XL)
@@ -216,9 +143,6 @@ function digLib.CheckEnvironment (widget)
     widget.paintName = true
   else
     widget.paintName = false
-  end
-
-    --libs.utils.dumpResolution (widget)
   end
 end
 -- ####################################################################
@@ -290,13 +214,13 @@ end
 -- # digLib.paint                                                     #
 -- ####################################################################
 function digLib.paint (widget)
-  digLib.CheckEnvironment (widget)
+  --digLib.CheckEnvironment (widget)
   digLib.readSensors(widget)
   -- force background
   lcd.color(widget.bgcolor)
   lcd.drawFilledRectangle(0, 0, widget.zoneWidth, widget.zoneHeight)
 
-  if widget.screenType ~= "Wrongwgt" then
+  if widget.zoneID ~= 0 then
     if (widget.StopWatch ~= nil) then
       digLib.paintDigital (widget)
     else
