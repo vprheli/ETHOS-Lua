@@ -251,7 +251,6 @@ local function wakeup(widget)
   if widget.initPending == true then
     libs.batLib.SetZoneMatrix(widget)
     libs.utils.GetZoneID (widget)
-    print("### Get Zone ID : " .. widget.zoneID)
     libs.batLib.SetZoneParam(widget)     
     -- TODO if necesssary
     widget.runBgTasks  = true
