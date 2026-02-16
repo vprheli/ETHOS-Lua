@@ -3,6 +3,10 @@
 <HR>
 <H1>ETHOS Lua widget scripts</H1>
 
+>[!IMPORTANT]
+My new scripts are gradually using the shared library utils.lua in the scripts/common folder. Compare the /lib folder in the transmitter with the folder in git and if you find the file only in the transmitter and not in git, delete it from the transmitter and don't forget to copy the file to the /common folder
+
+
 
 I am a passionate modeler and programmer, specializing in, among other things, creating Lua scripts for the FrSky ETHOS / OpenTx operating system. My goal is to optimize the experience of using transmitters such as the FrSky Horus X12S and X20 by using custom widgets and tools that provide users with important information, such as battery status or other telemetry data. I enjoy developing intuitive and effective solutions that expand the capabilities of these modern devices. My work combines a passion for model making and programming, while focusing on details that increase user comfort and system reliability.
 
