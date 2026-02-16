@@ -4,7 +4,7 @@
 <H1>ETHOS Lua widget scripts</H1>
 
 >[!IMPORTANT]
-My new scripts are gradually using the shared library utils.lua in the scripts/common folder. Compare the /lib folder in the transmitter with the folder in git and if you find the file only in the transmitter and not in git, delete it from the transmitter and don't forget to copy the file to the /common folder
+My new scripts are gradually using the shared library utils.lua in the scripts/common folder. Compare the /lib folder in the transmitter with the folder in git and if you find the file only in the transmitter and not in git, delete it from the transmitter and don't forget to copy content of the /common folder
 
 
 
