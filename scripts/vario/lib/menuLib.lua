@@ -74,6 +74,17 @@ function menuLib.configure(widget)
   line = form.addLine(libs.utils.translate("bgcolor"))
   form.addColorField(line, nil, function() return widget.bgcolor end, function(color) widget.bgcolor = color end)
 
+    -- Show Min-max values
+  line = form.addLine(libs.utils.translate("showMinMax"))
+  form.addBooleanField(line, nil, function() return widget.showMinMax end, function(value) widget.showMinMax = value end)
+  
+  -- Show negative Altitude checkbox
+  line = form.addLine(libs.utils.translate("showAltNegative"))
+  form.addBooleanField(line, nil, function() return widget.showAltNegative end, function(value) widget.showAltNegative = value end)
+
+  -- Show vertical speed in color
+  line = form.addLine(libs.utils.translate("showVScolored"))
+  form.addBooleanField(line, nil, function() return widget.showVScolored end, function(value) widget.showVScolored = value end)
 end
 
 return menuLib

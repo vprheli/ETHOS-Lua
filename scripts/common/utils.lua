@@ -88,19 +88,21 @@ function utils.GetZoneID (widget)
     widget.zoneWidth  = w
     widget.zoneID     = 0
 
-    print("### zoneWidtht       " .. w)
-    print("### zoneHeight       " .. h)
+--    print("")
+--    print("### key " .. utils.translate ("wgname") .. " ###")
+--    print("### zoneWidtht       " .. w)
+--    print("### zoneHeight       " .. h)
     
     for i = 1, #widget.zoneMatrix do
-      print("### (" .. i ..") matrixWidth  " .. widget.zoneMatrix[i][0])
-      print("### (" .. i ..") matrixHeight " .. widget.zoneMatrix[i][1])
+--      print("### (" .. i ..") matrixWidth  " .. widget.zoneMatrix[i][0])
+--      print("### (" .. i ..") matrixHeight " .. widget.zoneMatrix[i][1])
 
       if widget.zoneMatrix[i][0] <= widget.zoneWidth and widget.zoneMatrix[i][1]<= widget.zoneHeight then
-        print("### use zoneID " .. i)
+--        print("### use zoneID " .. i)
         widget.zoneID = i
         break
       end
-      print("###")
+--      print("###")
     end
     zoneChange = true
     --print ("### GetZoneID " .. widget.zoneWidth .. "x" .. widget.zoneHeight .. " zoneID = " .. widget.zoneID)

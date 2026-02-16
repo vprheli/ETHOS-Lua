@@ -26,16 +26,20 @@
 --           04.03.2025  1.0.3   VPRHELI  translate table fix
 --           03.09.2025  1.0.4   VPRHELI  background color storage fix (thanks Andreas), Italian translation
 --           07.10.2025  1.0.5   VPRHELI  switching widget using rotation encoder bug fix
---           27.02.2026  1.0.6   VPRHELI  unsupported language fix
+--           07.02.2026  1.0.6   VPRHELI  unsupported language fix
+--           10.02.2026  1.1.0   VPRHELI  common util.lua, widget paint type zone size detection
+--           16.02.2026  1.1.1   VPRHELI  show vertical speed in color
 -- =============================================================================
 --
 -- The latest version can always be found at https://github.com/vprheli/ETHOS-Lua
 --
 -- Warm thanks to my Italian colleague Francesco Salvi for the translation into Italian
+-- Also, many thanks for Andreas Kuhl's idea to optionally display minimum and maximum values. 
+-- This inspired me to implement an optional display of negative altitudes, which pilots who fly in the mountains will surely appreciate.
 --
 -- TODO
 
-local version           = "v1.0.6"
+local version           = "v1.1.1"
 local environment       = system.getVersion()
 -- load translate table from external file
 local tableFile  = assert(loadfile("/scripts/vario/translate.lua"))()
@@ -60,6 +64,7 @@ local g_libInitDone    = false
                 version        = version,
                 locale         = system.getLocale(),
                 basePath       = "/scripts/vario/",
+                commonPath     = "/scripts/common/",                
                 libFolder      = "lib/",
                 imgFolder      = "img/",
                 transtable     = transtable,
@@ -70,14 +75,18 @@ local g_libInitDone    = false
                 colors         = colors,
               }
 
-local g_rescan_seconds  = 5   -- check how often rescan ID (find new LS ....)
-local g_paint_frequency = 1   -- how many times per second display will be updated (1x per second)
+local g_updates_per_second = 2                -- how many times per second display will be updated
 
 -- #################################################################### 
 -- # loadLibrary                                                      #
 -- ####################################################################
-function loadLibrary(filename)
-  local lib = dofile(conf.basePath .. conf.libFolder .. filename..".lua")
+function loadLibrary(filename, isCommon)
+  local lib
+  if isCommon == false then
+    lib = dofile(conf.basePath .. conf.libFolder .. filename..".lua")
+  else 
+    lib = dofile(conf.commonPath .. filename..".lua")
+  end
   if lib.init ~= nil then
     lib.init(conf, libs)
   end
@@ -99,9 +108,9 @@ local function initLibraries(widget)
   if g_libInitDone == false then
     g_libInitDone = true
     -- load libraries
-    libs.utils   = loadLibrary("utils")
-    libs.menuLib = loadLibrary("menuLib")
-    libs.varLib  = loadLibrary("varLib")
+    libs.utils   = loadLibrary("utils",   true)
+    libs.menuLib = loadLibrary("menuLib", false)
+    libs.varLib  = loadLibrary("varLib",  false)
   end   
 end
 -- #################################################################### 
@@ -113,35 +122,42 @@ end
 local function create()
   --print ("### function create()")
   return { 
-                   -- telemetry
-                   VarioSensor    = nil,        -- FrSky Vario ADV, FrSky Archer Plus GR8
-                   VerticalSensor = nil,
-                   -- Vario Values
-                   altitude       = nil,
-                   vertSpeed      = nil,
-                   lastAltitude   = nil,
-                   FlightReset    = 0,          -- should be zero
-                   -- layout
-                   bgcolor        = lcd.RGB(0, 160, 224),   
-                   transtable     = transtable,
-                   -- status
-                   initPending    = true,
-                   runBgTasks     = false,                   
-                   -- layout
-                   screenHeight   = nil,
-                   screenWidth    = nil, 
-                   zoneHeight     = nil,
-                   zoneWidth      = nil,
-                   screenType     = "",
-                   last_rescan    = 0,
-                   last_paint     = 0,
-                   noTelFrameT    = 3,      -- thickness of no telemetry frame
-                   frameX         = 60,     -- X frame size for pitch attitude markers
-                   frameY         = 18,     -- Y frame size for pitch attitude markers
-                   markerL_len    = 10,
-                   markerR_len    = 8,
-                   dblNumOffset   = 38,
-                 }
+          -- telemetry
+          VarioSensor     = nil,        -- FrSky Vario ADV, FrSky Archer Plus GR8
+          VerticalSensor  = nil,
+          -- Vario Values
+          altitude        = nil,
+          vertSpeed       = nil,
+          altitudeMin     = nil,
+          vertSpeedMin    = nil,
+          altitudeMax     = nil,
+          vertSpeedMax    = nil,
+          lastAltitude    = nil,
+          FlightReset     = 0,          -- should be zero
+          -- layout
+          bgcolor         = lcd.RGB(0, 160, 224),   
+          transtable      = transtable,
+          -- status
+          initPending     = true,
+          runBgTasks      = false,
+          showMinMax      = true,
+          showAltNegative = false,
+          showVScolored   = false,
+          -- layout
+          screenHeight    = nil,
+          screenWidth     = nil, 
+          zoneHeight      = nil,
+          zoneWidth       = nil,
+          pp              = {},
+          zoneID          = 0,     -- zone ID defines paint procedure
+          zoneMatrix      = {},
+          last_time       = 0,
+          noTelFrameT     = 3,      -- thickness of no telemetry frame
+          frameX          = 60,     -- X frame size for pitch attitude markers
+          frameY          = 18,     -- Y frame size for pitch attitude markers
+          markerL_len     = 10,
+          markerR_len     = 8,
+      }
 end
 -- #################################################################### 
 -- *  paint                                                           #
@@ -172,7 +188,7 @@ end
 local function configure(widget)
   --print ("### function configure()")
   libs.menuLib.configure (widget)
-  widget.screenHeight = nil         -- force varLib.CheckEnvironment (widget)
+  widget.initPending = true    -- force reinitialize zone parameters  
 end
 -- #################################################################### 
 -- # read                                                             #
@@ -183,6 +199,9 @@ local function read(widget)
   widget.VarioSensor              = storage.read("Vario")  
   widget.VerticalSensor           = storage.read("VSpeed") 
   widget.bgcolor                  = storage.read("bgcolor")
+  widget.showMinMax               = storage.read("showMinMax")
+  widget.showAltNegative          = storage.read("showAltNegative")
+  widget.showVScolored            = storage.read("showVScolored")
 	return true
 end
 -- #################################################################### 
@@ -191,11 +210,13 @@ end
 -- #################################################################### 
 local function write(widget)
   --print ("### function write()")
-  storage.write("Vario"       , widget.VarioSensor)  
-  storage.write("VSpeed"      , widget.VerticalSensor)  
-	storage.write("bgcolor"     , widget.bgcolor)
-
-	return true
+  storage.write("Vario"          , widget.VarioSensor)  
+  storage.write("VSpeed"         , widget.VerticalSensor)  
+	storage.write("bgcolor"        , widget.bgcolor)
+	storage.write("showMinMax"     , widget.showMinMax)
+	storage.write("showAltNegative", widget.showAltNegative)
+	storage.write("showVScolored"  , widget.showVScolored)
+  return true
 end
 -- #################################################################### 
 -- # event                                                            #
@@ -216,6 +237,9 @@ local function wakeup(widget)
   local actual_time = os.clock()  -- Získání aktuálního času
   
   if widget.initPending == true then
+    libs.varLib.SetZoneMatrix(widget)
+    libs.utils.GetZoneID (widget)
+    libs.varLib.SetZoneParam(widget)      
     -- TODO if necesssary
     libs.utils.checkTelemetry()
     conf.lastTelState  = conf.telemetryState
@@ -224,28 +248,24 @@ local function wakeup(widget)
   end  
 
   if widget.runBgTasks == true then
-    if lcd.isVisible() then
-      if actual_time > widget.last_rescan then                            -- rescan environment, telemetry status
-        widget.last_rescan = actual_time + g_rescan_seconds               -- new time for rescan
---        widget.zoneWidth = 0
---        libs.varLib.CheckEnvironment (widget)                             -- zone change
-        libs.utils.checkTelemetry()
+    libs.utils.checkTelemetry()
+    if actual_time > widget.last_time then                        -- rescan environment, telemetry status
+      widget.last_time = actual_time + 1 / g_updates_per_second   -- new time for widget refresh
+      if lcd.isVisible() then
+        if libs.utils.GetZoneID (widget) then                     -- detection layout change
+          libs.varLib.SetZoneParam(widget) 
+        end
         libs.utils.checkFlightReset(widget)
-        if conf.telemetryState ~= conf.lastTelState then                  -- telemetry state changed
+        if conf.telemetryState ~= conf.lastTelState then          -- telemetry state changed
           --print ("### telemetry state changed")
           if conf.lastTelState == 1 then
             widget.lastAltitude = widget.altitude
           end          
           conf.lastTelState = conf.telemetryState
-          -- let transmitter and widgets until sensors are back on
-          widget.last_paint = actual_time  + 3
         end        
-      end
-      if actual_time > widget.last_paint then                             -- rescan environment, telemetry status
-        widget.last_paint = actual_time + 1 / g_paint_frequency  -- new time for paint
         lcd.invalidate ()        
-      end
-    end     -- isVisible
+      end   -- isVisible
+    end     -- last_time
   end       -- runBgTasks
   return
 end

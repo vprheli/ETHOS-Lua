@@ -22,6 +22,8 @@
 --           23.01.2025  0.0.1   VPRHELI  initial version
 --           27.01.2025  1.0.0   VPRHELI  minor changes
 --           16.02.2025  1.0.1   VPRHELI  removing opacity bitmaps, use opacity color
+--           10.02.2026  1.1.0   VPRHELI  common util.lua, widget paint type zone size detection
+--           16.02.2026  1.1.1   VPRHELI  show vertical speed in color
 -- =============================================================================
 -- Snsor IDs
 -- https://openrcforums.com/forum/viewtopic.php?t=5701
@@ -45,52 +47,96 @@ local libs        = nil
 -- # varLib.init                                                      #
 -- ####################################################################
 function varLib.init(param_conf, param_libs)
-  --print ("### varLib.init ()")
+  print ("### varLib.init ()")
   conf   = param_conf 
   libs   = param_libs
   
   return varLib
 end
--- #################################################################### 
--- #  varLib.CheckEnvironment                                         #
--- #    Read environment varibles                                     #
--- #################################################################### 
-function varLib.CheckEnvironment (widget)
-  local w, h = lcd.getWindowSize()
- 
-  if widget.screenHeight == nil or (w ~= widget.zoneWidth and h ~= widget.zoneHeight) then
-    -- environment changed
-    conf.darkMode = lcd.darkMode() 	
-    local version = system.getVersion()
-    
-    widget.screenHeight = version.lcdHeight
-    widget.screenWidth  = version.lcdWidth
-    conf.simulation     = version.simulation
-    
-    widget.zoneHeight = h
-    widget.zoneWidth  = w
-    
-    if widget.zoneWidth == 800 and widget.zoneHeight == 480 or widget.zoneWidth == 800 and widget.zoneHeight == 458 then
-      widget.screenType = "X20fullScreen"
-    elseif widget.zoneWidth == 784 and widget.zoneHeight == 316 or widget.zoneWidth == 784 and widget.zoneHeight == 294 then
-      widget.screenType = "X20fullScreenWithTitle"                   -- battery icon 111x200
-    elseif widget.zoneWidth == 388 and widget.zoneHeight == 316 or widget.zoneWidth == 388 and widget.zoneHeight == 294 then
-      widget.screenType = "X20halfScreen"
-    elseif widget.zoneWidth == 300 and widget.zoneHeight == 280 or widget.zoneWidth == 300 and widget.zoneHeight == 258 then
-      widget.screenType = "X20halfSreenWithSliders"    
-    elseif widget.zoneWidth == 256 and widget.zoneHeight == 316 or widget.zoneWidth == 256 and widget.zoneHeight == 294 then
-      widget.screenType = "X20thirdScreen"     
-    -- X18 temporary fix for two zone size
-    elseif widget.zoneWidth == 234 and widget.zoneHeight == 210 or widget.zoneWidth == 472 and widget.zoneHeight == 210 then
-      widget.screenType = "X18halfScreen"      
-    else
-      widget.screenType = "Wrongwgt"
-    end
-    -- not tested and supported yet
-    -- 480x722  "X10fullScreen" ??
-    -- 480x320  "X18fullScreen"
-    -- 640x360  "X10fullScreen" ??
-    --libs.utils.dumpResolution (widget)
+-- ####################################################################
+-- #  varLib.SetZoneMatrix                                            #
+-- #    Set zone dimensions matrix                                    #
+-- ####################################################################
+function varLib.SetZoneMatrix (widget)
+  lcd.font(FONT_XXL)
+  textX_w, textX_h = lcd.getTextSize("-10.0")
+  lcd.font(FONT_L)
+  textL_w, textL_h = lcd.getTextSize("A")
+  lcd.font(FONT_S)
+  textS_w, textS_h = lcd.getTextSize("1")  
+  
+  -- ##############
+  -- # Paint Pram #
+  -- ##############
+  local pp = { x = 0,
+             y = 0,
+             h = 0,
+             zoneW    = 0,
+             centerYA = 0,
+             centetYS = 0,
+             text_hS  = 0,
+             text_hL  = 0,
+             text_wL  = 0,
+             text_hX  = 0,
+             text_wX  = 0}
+  widget.pp = pp
+
+  widget.pp.text_hL = textL_h  
+  widget.pp.text_wL = textL_w 
+  widget.pp.text_hX = textX_h  
+  widget.pp.text_wX = textX_w 
+  widget.pp.text_hS = textS_h 
+  
+  widget.zoneMatrix[1] = {}
+  widget.zoneMatrix[1][0] = 2 * widget.frameX + 2 * textX_w + 2 * textX_w / 3   --[i][0] minimal width
+  widget.zoneMatrix[1][1] = 2 * textX_h + textL_h                               --[i][1] minimal height
+  
+  widget.zoneMatrix[2] = {}
+  widget.zoneMatrix[2][0] = 2 * widget.frameX + 2 * textX_w / 3                 --[i][0] minimal width
+  widget.zoneMatrix[2][1] = 4 * textX_h + textL_h                               --[i][1] minimal height
+  
+  widget.zoneMatrix[3] = {}
+  widget.zoneMatrix[3][0] = 2 * textX_w                                         --[i][0] minimal width
+  widget.zoneMatrix[3][1] = 2 * textX_h                                         --[i][1] minimal height
+end
+-- ####################################################################
+-- #  varLib.SetZoneParam                                             #
+-- #    Set zone paint parameters based on widget.zoneID              #
+-- ####################################################################
+function varLib.SetZoneParam (widget)
+  --print ("### varLib.SetZoneParam ()")
+  
+  conf.darkMode = lcd.darkMode()
+  local version = system.getVersion()
+
+  widget.screenHeight = version.lcdHeight
+  widget.screenWidth  = version.lcdWidth
+  conf.simulation     = version.simulation
+
+  if widget.zoneID == 1 then
+    widget.pp.xA       = 0
+    widget.pp.xS       = widget.zoneWidth - 1    
+    widget.pp.y        = 0
+    widget.pp.h        = widget.zoneHeight
+    widget.pp.centerYA = math.floor(widget.pp.y + widget.pp.h/2)
+    widget.pp.centerYS = math.floor(widget.pp.y + widget.pp.h/2)
+  elseif widget.zoneID == 2 then
+    widget.pp.xA        = 0
+    widget.pp.xS       = widget.zoneWidth - 1        
+    widget.pp.y        = 0
+    widget.pp.h        = widget.zoneHeight
+    widget.pp.centerYA = math.floor(widget.pp.y + widget.pp.h/2) + widget.pp.text_hX  + 2 * widget.noTelFrameT
+    widget.pp.centerYS = math.floor(widget.pp.y + widget.pp.h/2) - widget.pp.text_hX  - 2 * widget.noTelFrameT
+    widget.pp.text_hX  = widget.pp.text_hX
+  elseif widget.zoneID == 3 then
+    widget.pp.xA       = 0
+    widget.pp.xS       = widget.zoneWidth / 2        
+    widget.pp.y        = 0
+    widget.pp.h        = widget.zoneHeight
+    widget.pp.zoneW    = widget.zoneWidth / 2
+    widget.pp.centerYA = math.floor(widget.pp.y + widget.pp.h/2)
+    widget.pp.centerYS = math.floor(widget.pp.y + widget.pp.h/2)
+    widget.pp.text_hX  = widget.pp.text_hX    
   end
 end
 -- #################################################################### 
@@ -114,15 +160,22 @@ function varLib.readSensors(widget)
     -- Altitude sensor (Vario)
     local sensor = widget.VarioSensor
     if sensor ~= nil then
-      widget.altitude = sensor:value()
+      widget.altitude    = sensor:value()
+      widget.altitudeMin = sensor:value({options=OPTION_SENSOR_MIN})
+      widget.altitudeMax = sensor:value({options=OPTION_SENSOR_MAX})
       --print("#### widget.altitude  : " .. widget.altitude)
+      if widget.showAltNegative == false and widget.altitude < 0 then
+        widget.altitude = 0
+      end
     else
       widget.altitude = nil
     end
     -- Vertical Speed Sensor
     sensor = widget.VerticalSensor
     if sensor ~= nil then
-      widget.vertSpeed = sensor:value()
+      widget.vertSpeed    = sensor:value()
+      widget.vertSpeedMin = sensor:value({options=OPTION_SENSOR_MIN})      
+      widget.vertSpeedMax = sensor:value({options=OPTION_SENSOR_MAX})
       --print("#### widget.vSpeed    : " .. widget.vertSpeed)
     else
       widget.vertSpeed = nil
@@ -139,102 +192,133 @@ function varLib.paintVario (widget)
   local function formatNumber(value, format)
     return string.format(format, value)
   end
+  -- ******************************************************** 
+  -- * getVarioColor                paintVario() local  *
+  -- ********************************************************
+  local function getVarioColor (vertSpeed, limit)
+    if limit <= 0 then return lcd.RGB(0, 0, 0) end
+
+    -- intenzity calculation 0.0 to 1.0
+    local intensity = math.abs(vertSpeed) / limit
+    if intensity > 1 then intensity = 1 end
+    
+    local colorVal = math.floor(intensity * 255)    -- scale 0-255 RGB
+
+    if vertSpeed > 0 then         -- pozitive value (black -> green)
+      return lcd.RGB(0, colorVal, 0)
+    elseif vertSpeed < 0 then     -- negative value (black -> red)
+      return lcd.RGB(colorVal, 0, 0)
+    else
+      return lcd.RGB(0, 0, 0)   -- zero - black
+    end
+  end
   -- ********************************************************
   -- * drawAltitudeScale            paintVario() local  *
   -- ********************************************************
   local function drawAltitudeScale(widget)
-    local x = 0
-    local y = 0
-    local h = widget.zoneHeight
-    local centerY = math.floor(y + h/2)    
+    local x = widget.pp.xA
+    local y = widget.pp.y
     
-    if widget.zoneWidth < 388 then
-      lcd.font(FONT_XXL)
-      text_w, text_h = lcd.getTextSize("")
-      centerY = h - text_h - widget.noTelFrameT
-    end
     -- gray background
     -- 30% opacity of BLACK
     lcd.color(lcd.RGB(0,0,0,0.3))
-    lcd.drawFilledRectangle(x, y, 60, h)
+    lcd.drawFilledRectangle (x, y, 60, widget.pp.h)
     
     lcd.color(conf.colors.white)
     lcd.pen(SOLID)
-    lcd.font(FONT_L)
-    text_w, text_h = lcd.getTextSize("")
-    lcd.drawLine(x, y, x, y + h - 1)
+    lcd.drawLine(x, y, x, y + widget.pp.h - 1)
     
     -- markers
     local marker_len = widget.markerL_len
-    local scaleAlt = math.floor(h / 60)
-    local AltZero = centerY + widget.altitude * scaleAlt   -- pocet pixlu kde zacina nula
-    for dist = 0, 199 do
-      local markerY = AltZero - 5 * dist * scaleAlt
-      if (markerY < (y + widget.frameY / 2)) then
-        break
-      elseif (markerY < (y + h- widget.frameY/2)) then
-        lcd.drawLine(x, markerY, x + marker_len, markerY)
-        if math.fmod (dist, 2) == 0 then
-          lcd.drawNumber(x+(widget.frameX - marker_len) / 2 + marker_len, markerY - text_h/2, 5 * dist, nil, 0, TEXT_CENTERED)
+    local scaleAlt = math.floor(widget.pp.h / 60)
+    local AltZero = widget.pp.centerYA + widget.altitude * scaleAlt   -- pocet pixlu kde zacina nula
+    for sign = 1, -1, -2 do    
+      for dist = 0, 199 do
+        local markerY = AltZero - 5 * dist * scaleAlt * sign
+--        if (markerY >= h) or (markerY < y) then 
+--          break
+--      end
+        if (markerY >= (y + widget.frameY/2)) and (markerY < (y + widget.pp.h - widget.frameY/2)) then
+          lcd.drawLine (x, markerY, x + marker_len, markerY)
+          if math.fmod (dist, 2) == 0 then
+            lcd.drawNumber (x+(widget.frameX - marker_len) / 2 + marker_len, markerY - widget.pp.text_hL/2, 5 * dist * sign, nil, 0, TEXT_CENTERED)
+          end
         end
+      end
+      if widget.showAltNegative == false then
+        break
       end
     end
     ------------------------------------------
     -- Altitude value                       --
     ------------------------------------------    
     -- Altitude unit
-    lcd.drawText(x+widget.frameX + 4, y + widget.frameY / 4, "Alt m")
+    lcd.drawText (x + widget.frameX + 4, y + widget.frameY / 4, "Alt m")
     -- altitude value frame
     lcd.font(FONT_XXL)
-    text_w, text_h = lcd.getTextSize("300")
     lcd.color(conf.colors.black)
     
-    lcd.drawFilledRectangle (x + widget.frameX + widget.dblNumOffset, centerY - text_h, text_w, 2 * text_h)
-    lcd.drawFilledTriangle(widget.frameX, centerY,  x + widget.frameX + widget.dblNumOffset, centerY - text_h, x + widget.frameX + widget.dblNumOffset, centerY + text_h)
+    lcd.drawFilledRectangle (x + widget.frameX + 2 * widget.pp.text_hX / 3,
+                             widget.pp.centerYA - widget.pp.text_hX,
+                             widget.pp.text_wX,
+                             2 * widget.pp.text_hX)
+    lcd.drawFilledTriangle (x + widget.frameX,
+                            widget.pp.centerYA,
+                            widget.frameX + 2 * widget.pp.text_hX / 3,
+                            widget.pp.centerYA + widget.pp.text_hX,
+                            widget.frameX + 2 * widget.pp.text_hX / 3,
+                            widget.pp.centerYA - widget.pp.text_hX)                          
     
     -- altitude value
     lcd.color(conf.colors.white) 
     lcd.font(FONT_XXL)
-    text_w, text_h = lcd.getTextSize("300")
-    --lcd.drawNumber(x + widget.frameX + widget.dblNumOffset, centerY - text_h / 2, widget.altitude, nil, 0, TEXT_LEFT)       
-    lcd.drawNumber(x + widget.frameX + widget.dblNumOffset + (text_w / 2), centerY - text_h / 2, widget.altitude, nil, 0, TEXT_CENTERED) 
+    lcd.drawNumber (x + widget.frameX + ((2 * widget.pp.text_wX / 3 + widget.pp.text_wX) / 2),
+                    widget.pp.centerYA - widget.pp.text_hX / 2,
+                    widget.altitude,
+                    nil,
+                    0,
+                    TEXT_CENTERED)
+    if widget.showMinMax then
+      lcd.font(FONT_S)
+      lcd.drawNumber(x + widget.frameX + ((2 * widget.pp.text_wX / 3 + widget.pp.text_wX) / 2),
+                     widget.pp.centerYA - widget.pp.text_hX / 2 - widget.pp.text_hS,
+                     widget.altitudeMax,
+                     nil,
+                     0,
+                     TEXT_CENTERED)
+      lcd.drawNumber(x + widget.frameX + ((2 * widget.pp.text_wX / 3 + widget.pp.text_wX) / 2),
+                     widget.pp.centerYA + widget.pp.text_hX / 2,
+                     widget.altitudeMin,
+                     nil,
+                     0,
+                     TEXT_CENTERED)                   
+    end
   end
   -- ********************************************************
   -- * drawVertSpeedScale           paintVario() local  *
   -- ********************************************************
   local function drawVertSpeedScale(widget)
-    local w = 30
-    local h = widget.zoneHeight    
-    local x = widget.zoneWidth - 1
-    local y = 0
-
-    local centerX = math.floor(x + w/2)
-    local centerY = math.floor(y + h/2)
+    local x = widget.pp.xS
+    local y = widget.pp.y
     
-        if widget.zoneWidth < 388 then
-      lcd.font(FONT_XXL)
-      text_w, text_h = lcd.getTextSize("")
-      centerY = centerY - text_h / 2 - 2 * widget.noTelFrameT
-    end
     -- gray background    
     -- 30% opacity of BLACK
-    lcd.color(lcd.RGB(0,0,0,0.3))
-    lcd.drawFilledRectangle(x - widget.frameX, y, widget.frameX, h)
+    lcd.color (lcd.RGB(0,0,0,0.3))
+    lcd.drawFilledRectangle (x - widget.frameX, y, widget.frameX, widget.pp.h)
     
-    lcd.color(conf.colors.white)        
-    lcd.font(FONT_L)
-    text_w, text_h = lcd.getTextSize("-20")
+    lcd.color (conf.colors.white)        
+    lcd.font (FONT_L)
     -- vario Vertical Speed scale
-    lcd.drawLine(x, y, x, y + h - 1)
+    lcd.drawLine (x, y, x, y + widget.pp.h - 1)
     
     -- markers
     local scalevSpd = 12
     local marker_len = widget.markerR_len    
-    local vSpdZero = centerY + 5 * widget.vertSpeed * scalevSpd   -- pocet pixlu kde zacina nula
+    local vSpdZero = widget.pp.centerYS + 5 * widget.vertSpeed * scalevSpd   -- pocet pixlu kde zacina nula
     for sign = -1, 1, 2 do
       for dist = 0, 50 do
         local markerY = vSpdZero - dist * scalevSpd * sign
-        if (markerY >= (y + widget.frameY/2)) and (markerY < (y + h- widget.frameY/2)) then      
+        if (markerY >= (y + widget.frameY/2)) and (markerY < (y + widget.pp.h - widget.frameY/2)) then      
           lcd.drawLine(x - marker_len - 1,
                        markerY,
                        x - 1, markerY)
@@ -242,8 +326,8 @@ function varLib.paintVario (widget)
             lcd.drawLine(x - 2 * marker_len, 
                          markerY,
                          x - 1, markerY)
-            lcd.drawNumber(x - text_w / 2 - 2 * marker_len,   --(widget.frameX - marker_len) / 2
-                          markerY - text_h/2,
+            lcd.drawNumber(x - widget.pp.text_wL / 2 - 2 * marker_len,   --(widget.frameX - marker_len) / 2
+                          markerY - widget.pp.text_hL/2,
                           sign * dist / 5, nil, nil, TEXT_CENTERED)
           end        
         end
@@ -256,44 +340,152 @@ function varLib.paintVario (widget)
     lcd.drawText(x - widget.frameX - 4, y + widget.frameY / 4, "m/s", TEXT_RIGHT)
     -- vertical speed value frame
     lcd.font(FONT_XXL)
-    text_w, text_h = lcd.getTextSize("-10.0")
-    lcd.color(conf.colors.black)
+    if widget.showVScolored == true then
+      lcd.color(getVarioColor (widget.vertSpeed, 5))
+    else
+      lcd.color(conf.colors.black)
+    end
     
-    lcd.drawFilledRectangle (x - widget.frameX - widget.dblNumOffset - text_w, centerY - text_h, text_w, 2 * text_h)      
-    lcd.drawFilledTriangle(x - widget.frameX, centerY,  x - widget.frameX - widget.dblNumOffset - 1, centerY - text_h, x - widget.frameX - widget.dblNumOffset - 1, centerY + text_h)
+    lcd.drawFilledRectangle (x - widget.frameX - 2 * widget.pp.text_hX / 3 - widget.pp.text_wX,
+                             widget.pp.centerYS - widget.pp.text_hX,
+                             widget.pp.text_wX,
+                             2 * widget.pp.text_hX) 
+    lcd.drawFilledTriangle (x - widget.frameX,
+                            widget.pp.centerYS,  x - widget.frameX - 2 * widget.pp.text_hX / 3 - 1,
+                            widget.pp.centerYS - widget.pp.text_hX,
+                            x - widget.frameX - 2 * widget.pp.text_hX / 3 - 1,
+                            widget.pp.centerYS + widget.pp.text_hX)
         
     -- vertical speed Value
     lcd.color(conf.colors.white)        
-    --lcd.drawNumber(x - widget.frameX - widget.dblNumOffset, centerY - text_h / 2, widget.vertSpeed, nil, 1, TEXT_RIGHT)    
-    lcd.drawNumber(x - widget.frameX - widget.dblNumOffset - (text_w /2), centerY - text_h / 2, widget.vertSpeed, nil, 1, TEXT_CENTERED)    
-
+    lcd.drawNumber (x - widget.frameX - ((2 * widget.pp.text_hX / 3 + widget.pp.text_wX) / 2),
+                    widget.pp.centerYS - widget.pp.text_hX / 2,
+                    widget.vertSpeed,
+                    nil,
+                    1,
+                    TEXT_CENTERED)   
+    if widget.showMinMax then
+      lcd.font(FONT_S)
+      lcd.drawNumber(x - widget.frameX - ((2 * widget.pp.text_wX / 3 + widget.pp.text_wX) / 2),
+                     widget.pp.centerYA - widget.pp.text_hX / 2 - widget.pp.text_hS,
+                     widget.vertSpeedMax,
+                     nil,
+                     1,
+                     TEXT_CENTERED)
+      lcd.drawNumber(x - widget.frameX - ((2 * widget.pp.text_wX / 3 + widget.pp.text_wX) / 2),
+                     widget.pp.centerYA + widget.pp.text_hX / 2,
+                     widget.vertSpeedMin,
+                     nil,
+                     1,
+                     TEXT_CENTERED)                   
+    end                  
   end
-  
+  -- ********************************************************
+  -- * drawSimpleAltitude           paintVario() local  *
+  -- ********************************************************
+  local function drawSimpleAltitude(widget)
+    lcd.color (conf.colors.black)    
+    lcd.drawFilledRectangle (widget.pp.xA + widget.pp.zoneW / 2 - widget.pp.text_wX / 2,
+                             widget.pp.centerYA - widget.pp.text_hX,
+                             widget.pp.text_wX,
+                             2 * widget.pp.text_hX)
+    lcd.color(conf.colors.white)        
+    lcd.font(FONT_XXL)
+    lcd.drawNumber (widget.pp.xA + widget.pp.zoneW / 2,
+                    widget.pp.y + widget.pp.centerYA - widget.pp.text_hX / 2,
+                    widget.altitude,
+                    nil,
+                    0,
+                    TEXT_CENTERED) 
+    if widget.showMinMax then
+      lcd.font(FONT_S)
+      lcd.drawNumber(widget.pp.xA + widget.pp.zoneW / 2,
+                     widget.pp.centerYA - widget.pp.text_hX / 2 - widget.pp.text_hS,
+                     widget.altitudeMax,
+                     nil,
+                     0,
+                     TEXT_CENTERED)
+      lcd.drawNumber(widget.pp.xA + widget.pp.zoneW / 2,
+                     widget.pp.centerYA + widget.pp.text_hX / 2,
+                     widget.altitudeMin,
+                     nil,
+                     0,
+                     TEXT_CENTERED)                   
+    end                  
+  end
+  -- ********************************************************
+  -- * drawSimpleSpeed           paintVario() local  *
+  -- ********************************************************
+  local function drawSimpleSpeed(widget)
+    speedColor = getVarioColor (widget.vertSpeed, 5)
+    lcd.color (lcd.color (lcd.RGB(0,0,0,0.3)))
+    lcd.drawFilledRectangle (widget.pp.xS,
+                             widget.pp.y,
+                             widget.pp.zoneW,
+                             widget.pp.h)
+    lcd.color (speedColor)      
+    lcd.drawFilledRectangle (widget.pp.xS + widget.pp.zoneW / 2 - widget.pp.text_wX / 2,
+                             widget.pp.y + widget.pp.centerYA - widget.pp.text_hX,
+                             widget.pp.text_wX,
+                             2 * widget.pp.text_hX)
+    -- vertical speed Value
+    
+    lcd.color(conf.colors.white)        
+    lcd.font(FONT_XXL)
+    lcd.drawNumber (widget.pp.xS + widget.pp.zoneW / 2,
+                    widget.pp.y + widget.pp.centerYS - widget.pp.text_hX / 2,
+                    widget.vertSpeed,
+                    nil,
+                    1,
+                    TEXT_CENTERED)
+    if widget.showMinMax then
+      lcd.font(FONT_S)
+      lcd.drawNumber(widget.pp.xS + widget.pp.zoneW / 2,
+                     widget.pp.centerYA - widget.pp.text_hX / 2 - widget.pp.text_hS,
+                     widget.vertSpeedMax,
+                     nil,
+                     1,
+                     TEXT_CENTERED)
+      lcd.drawNumber(widget.pp.xS + widget.pp.zoneW / 2,
+                     widget.pp.centerYA + widget.pp.text_hX / 2,
+                     widget.vertSpeedMin,
+                     nil,
+                     1,
+                     TEXT_CENTERED)                   
+    end                   
+  end
   ------------------------------------------
   -- left part Altitude from vario        --
   ------------------------------------------
   if widget.altitude ~= nil then
-    drawAltitudeScale(widget)
+    if widget.zoneID == 3 then
+      drawSimpleAltitude (widget)
+    else
+      drawAltitudeScale (widget)
+    end
   end
   ------------------------------------------
   -- right part Vertical Speed from vario --
   ------------------------------------------
   if widget.vertSpeed ~= nil then
-    drawVertSpeedScale(widget)
+    if widget.zoneID == 3 then
+      drawSimpleSpeed (widget)
+    else
+      drawVertSpeedScale (widget)
+    end
   end
 end
 -- #################################################################### 
 -- # varLib.paint                                                     #
 -- ####################################################################
 function varLib.paint (widget)
-  libs.varLib.CheckEnvironment (widget)
   libs.varLib.readSensors(widget)
   -- force background
   --lcd.color(conf.colors.panelBackground)
-  lcd.color(widget.bgcolor)  
+  lcd.color(widget.bgcolor)
   lcd.drawFilledRectangle(0, 0, widget.zoneWidth, widget.zoneHeight)  
   
-  if widget.screenType ~= "Wrongwgt" then
+  if widget.zoneID ~= 0 then
     if (widget.VarioSensor ~= nil) then
       varLib.paintVario (widget)         
     else
@@ -307,13 +499,6 @@ function varLib.paint (widget)
     lcd.color(conf.colors.red)
     lcd.drawRectangle(0, 0, widget.zoneWidth, widget.zoneHeight, widget.noTelFrameT)  
   end
-  
---  if conf.simulation == true then
---    lcd.font(FONT_S)
---    lcd.color(conf.colors.red)
---    text_w, text_h = lcd.getTextSize("")
---    lcd.drawText(widget.zoneWidth - widget.frameX - widget.noTelFrameT, widget.zoneHeight - text_h - widget.noTelFrameT, widget.zoneWidth.."x"..widget.zoneHeight, TEXT_RIGHT)
---  end
 end
 
 return varLib
