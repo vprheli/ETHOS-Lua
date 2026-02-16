@@ -10,7 +10,7 @@ My new scripts are gradually using the shared library utils.lua in the scripts/c
 
 I am a passionate modeler and programmer, specializing in, among other things, creating Lua scripts for the FrSky ETHOS / OpenTx operating system. My goal is to optimize the experience of using transmitters such as the FrSky Horus X12S and X20 by using custom widgets and tools that provide users with important information, such as battery status or other telemetry data. I enjoy developing intuitive and effective solutions that expand the capabilities of these modern devices. My work combines a passion for model making and programming, while focusing on details that increase user comfort and system reliability.
 
-All my widgets are multilingual. In the current version they support English, German and Czech. The language can be easily added to the code. If you are a native speaker of a language not listed, please translate the texts in the header of the main.lua file and let me know, I will publish them for others.
+All my widgets are multilingual. In the current version they support English, German and Czech. The language can be easily added to the code. If you are a native speaker of a language not listed, please translate the texts in the translate.lua file and let me know, I will publish them for others.
 
 All scripts support X20 radios. Some also support radios with lower display resolution.
 
