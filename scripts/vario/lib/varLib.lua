@@ -367,13 +367,13 @@ function varLib.paintVario (widget)
     if widget.showMinMax then
       lcd.font(FONT_S)
       lcd.drawNumber(x - widget.frameX - ((2 * widget.pp.text_wX / 3 + widget.pp.text_wX) / 2),
-                     widget.pp.centerYA - widget.pp.text_hX / 2 - widget.pp.text_hS,
+                     widget.pp.centerYS - widget.pp.text_hX / 2 - widget.pp.text_hS,
                      widget.vertSpeedMax,
                      nil,
                      1,
                      TEXT_CENTERED)
       lcd.drawNumber(x - widget.frameX - ((2 * widget.pp.text_wX / 3 + widget.pp.text_wX) / 2),
-                     widget.pp.centerYA + widget.pp.text_hX / 2,
+                     widget.pp.centerYS + widget.pp.text_hX / 2,
                      widget.vertSpeedMin,
                      nil,
                      1,
