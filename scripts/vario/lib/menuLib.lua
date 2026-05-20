@@ -43,7 +43,7 @@ end
 -- #    Widget Configuration options                                  #
 -- #################################################################### 
 function menuLib.configure(widget)
-  print ("### menuLib.configure()")
+  --print ("### menuLib.configure()")
   
   local cellsEnabled = widget.VoltageSensor
   -- Battery Capacity Version
@@ -84,7 +84,31 @@ function menuLib.configure(widget)
 
   -- Show vertical speed in color
   line = form.addLine(libs.utils.translate("showVScolored"))
-  form.addBooleanField(line, nil, function() return widget.showVScolored end, function(value) widget.showVScolored = value end)
+  form.addBooleanField(line, nil, function() return widget.showVScolored end, function(value) 
+                                                                                widget.showVScolored = value 
+                                                                                limitField:enable(value)
+                                                                                end)
+  
+  -- Vertical speed color limit
+  line = form.addLine(libs.utils.translate("VScolorLimit"))
+  limitField = form.addNumberField(line, nil, 0, 100, function() return widget.VScolorLimit * 10 end, function(newValue) widget.VScolorLimit = newValue/10 end)
+  limitField:suffix("m/s")
+  limitField:default(5)
+  limitField:step(5)
+  limitField:decimals(1)
+  limitField:enable(widget.showVScolored)
+  
+  -- height limit warning
+  line = form.addLine(libs.utils.translate("heightLimit"))
+  heightField = form.addNumberField(line, nil, 0, 1000, function() return widget.heightLimit end, function(newValue) widget.heightLimit = newValue end)
+  heightField:suffix("m")
+  heightField:default(300)
+  heightField:step(10)
+  heightField:decimals(0)
+
+  -- limit warning color
+  line = form.addLine(libs.utils.translate("heihtLimitColor"))
+  form.addColorField(line, nil, function() return widget.limitColor end, function(color) widget.limitColor = color end)
 end
 
 return menuLib

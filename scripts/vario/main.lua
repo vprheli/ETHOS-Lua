@@ -29,6 +29,8 @@
 --           07.02.2026  1.0.6   VPRHELI  unsupported language fix
 --           10.02.2026  1.1.0   VPRHELI  common util.lua, widget paint type zone size detection
 --           16.02.2026  1.1.1   VPRHELI  show vertical speed in color
+--           21.02.2026  1.1.2   VPRHELI  vertical senzor color senzitivity
+--           20.05.2026  1.1.3   VPRHELI  height limit, vertical scale fix
 -- =============================================================================
 --
 -- The latest version can always be found at https://github.com/vprheli/ETHOS-Lua
@@ -39,7 +41,7 @@
 --
 -- TODO
 
-local version           = "v1.1.1"
+local version           = "v1.1.3"
 local environment       = system.getVersion()
 -- load translate table from external file
 local tableFile  = assert(loadfile("/scripts/vario/translate.lua"))()
@@ -49,7 +51,8 @@ local utils   = {}
 local libs    = { menuLib  = nil,
                   varLib   = nil,
                   utils    = nil}
-local g_libInitDone    = false
+local g_libInitDone       = false
+local g_defaultVScolLimit = 5
  
  colors = {
     white            = COLOR_WHITE,
@@ -126,13 +129,12 @@ local function create()
           VarioSensor     = nil,        -- FrSky Vario ADV, FrSky Archer Plus GR8
           VerticalSensor  = nil,
           -- Vario Values
-          altitude        = nil,
-          vertSpeed       = nil,
-          altitudeMin     = nil,
-          vertSpeedMin    = nil,
-          altitudeMax     = nil,
-          vertSpeedMax    = nil,
-          lastAltitude    = nil,
+          altitude        = 0,
+          vertSpeed       = 0,
+          altitudeMin     = 0,
+          vertSpeedMin    = 0,
+          altitudeMax     = 0,
+          vertSpeedMax    = 0,
           FlightReset     = 0,          -- should be zero
           -- layout
           bgcolor         = lcd.RGB(0, 160, 224),   
@@ -143,18 +145,23 @@ local function create()
           showMinMax      = true,
           showAltNegative = false,
           showVScolored   = false,
+          VScolorLimit    = g_defaultVScolLimit,        -- vertical color speed change limit (+/- interval value where the color chages)
+          heightLimit     = 300,
+          limitColor      = lcd.RGB(255, 0, 0),
           -- layout
           screenHeight    = nil,
           screenWidth     = nil, 
           zoneHeight      = nil,
           zoneWidth       = nil,
           pp              = {},
-          zoneID          = 0,     -- zone ID defines paint procedure
+          zoneID          = 0,        -- zone ID defines paint procedure
           zoneMatrix      = {},
           last_time       = 0,
-          noTelFrameT     = 3,      -- thickness of no telemetry frame
-          frameX          = 60,     -- X frame size for pitch attitude markers
-          frameY          = 18,     -- Y frame size for pitch attitude markers
+          warning_time    = 0,
+          warning_flag    = false,
+          noTelFrameT     = 3,        -- thickness of no telemetry frame
+          frameX          = 60,       -- X frame size for pitch attitude markers
+          frameY          = 18,       -- Y frame size for pitch attitude markers
           markerL_len     = 10,
           markerR_len     = 8,
       }
@@ -202,6 +209,12 @@ local function read(widget)
   widget.showMinMax               = storage.read("showMinMax")
   widget.showAltNegative          = storage.read("showAltNegative")
   widget.showVScolored            = storage.read("showVScolored")
+  widget.VScolorLimit             = storage.read("VScolorLimit")
+  if widget.VScolorLimit == nil then
+    widget.VScolorLimit = g_defaultVScolLimit
+  end
+  widget.heightLimit              = storage.read("heightLimit")
+  widget.limitColor               = storage.read("limitColor")
 	return true
 end
 -- #################################################################### 
@@ -216,6 +229,9 @@ local function write(widget)
 	storage.write("showMinMax"     , widget.showMinMax)
 	storage.write("showAltNegative", widget.showAltNegative)
 	storage.write("showVScolored"  , widget.showVScolored)
+	storage.write("VScolorLimit"   , widget.VScolorLimit)
+	storage.write("heightLimit"    , widget.heightLimit)
+	storage.write("limitColor"     , widget.limitColor)
   return true
 end
 -- #################################################################### 
@@ -251,6 +267,14 @@ local function wakeup(widget)
     libs.utils.checkTelemetry()
     if actual_time > widget.last_time then                        -- rescan environment, telemetry status
       widget.last_time = actual_time + 1 / g_updates_per_second   -- new time for widget refresh
+      if actual_time > widget.warning_time then
+        if widget.warning_flag then
+          widget.warning_flag = false
+        else
+          widget.warning_flag = true
+        end
+        widget.warning_time = actual_time + 2
+      end -- warning_time
       if lcd.isVisible() then
         if libs.utils.GetZoneID (widget) then                     -- detection layout change
           libs.varLib.SetZoneParam(widget) 
@@ -258,9 +282,6 @@ local function wakeup(widget)
         libs.utils.checkFlightReset(widget)
         if conf.telemetryState ~= conf.lastTelState then          -- telemetry state changed
           --print ("### telemetry state changed")
-          if conf.lastTelState == 1 then
-            widget.lastAltitude = widget.altitude
-          end          
           conf.lastTelState = conf.telemetryState
         end        
         lcd.invalidate ()        

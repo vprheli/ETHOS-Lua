@@ -24,8 +24,10 @@
 --           16.02.2025  1.0.1   VPRHELI  removing opacity bitmaps, use opacity color
 --           10.02.2026  1.1.0   VPRHELI  common util.lua, widget paint type zone size detection
 --           16.02.2026  1.1.1   VPRHELI  show vertical speed in color
+--           21.02.2026  1.1.2   VPRHELI  vertical senzor color senzitivity
+--           20.05.2026  1.1.3   VPRHELI  height limit, vertical scale fix
 -- =============================================================================
--- Snsor IDs
+-- Sensor IDs
 -- https://openrcforums.com/forum/viewtopic.php?t=5701
 -- RSSI     0xF101
 -- AccX     0x0700
@@ -47,7 +49,7 @@ local libs        = nil
 -- # varLib.init                                                      #
 -- ####################################################################
 function varLib.init(param_conf, param_libs)
-  print ("### varLib.init ()")
+  --print ("### varLib.init ()")
   conf   = param_conf 
   libs   = param_libs
   
@@ -164,11 +166,8 @@ function varLib.readSensors(widget)
       widget.altitudeMin = sensor:value({options=OPTION_SENSOR_MIN})
       widget.altitudeMax = sensor:value({options=OPTION_SENSOR_MAX})
       --print("#### widget.altitude  : " .. widget.altitude)
-      if widget.showAltNegative == false and widget.altitude < 0 then
-        widget.altitude = 0
-      end
     else
-      widget.altitude = nil
+      widget.altitude = 0
     end
     -- Vertical Speed Sensor
     sensor = widget.VerticalSensor
@@ -178,7 +177,7 @@ function varLib.readSensors(widget)
       widget.vertSpeedMax = sensor:value({options=OPTION_SENSOR_MAX})
       --print("#### widget.vSpeed    : " .. widget.vertSpeed)
     else
-      widget.vertSpeed = nil
+      widget.vertSpeed = 0
     end
   end
 end
@@ -228,10 +227,12 @@ function varLib.paintVario (widget)
     lcd.pen(SOLID)
     lcd.drawLine(x, y, x, y + widget.pp.h - 1)
     
+    local scaleAltitude = widget.showAltNegative and widget.altitude or widget.altitude < 0 and 0 or widget.altitude
+    
     -- markers
     local marker_len = widget.markerL_len
     local scaleAlt = math.floor(widget.pp.h / 60)
-    local AltZero = widget.pp.centerYA + widget.altitude * scaleAlt   -- pocet pixlu kde zacina nula
+    local AltZero = widget.pp.centerYA + scaleAltitude * scaleAlt   -- pocet pixlu kde zacina nula
     for sign = 1, -1, -2 do    
       for dist = 0, 199 do
         local markerY = AltZero - 5 * dist * scaleAlt * sign
@@ -341,7 +342,7 @@ function varLib.paintVario (widget)
     -- vertical speed value frame
     lcd.font(FONT_XXL)
     if widget.showVScolored == true then
-      lcd.color(getVarioColor (widget.vertSpeed, 5))
+      lcd.color(getVarioColor (widget.vertSpeed, widget.VScolorLimit))
     else
       lcd.color(conf.colors.black)
     end
@@ -417,7 +418,7 @@ function varLib.paintVario (widget)
   -- * drawSimpleSpeed           paintVario() local  *
   -- ********************************************************
   local function drawSimpleSpeed(widget)
-    speedColor = getVarioColor (widget.vertSpeed, 5)
+    speedColor = getVarioColor (widget.vertSpeed, widget.VScolorLimit)
     lcd.color (lcd.color (lcd.RGB(0,0,0,0.3)))
     lcd.drawFilledRectangle (widget.pp.xS,
                              widget.pp.y,
@@ -454,10 +455,15 @@ function varLib.paintVario (widget)
                      TEXT_CENTERED)                   
     end                   
   end
+  
+  --
+  -- paintVario() function starts here
+  --
+  --print ("### function paintVario()")
   ------------------------------------------
   -- left part Altitude from vario        --
   ------------------------------------------
-  if widget.altitude ~= nil then
+  if widget.VarioSensor ~= nil then
     if widget.zoneID == 3 then
       drawSimpleAltitude (widget)
     else
@@ -467,7 +473,7 @@ function varLib.paintVario (widget)
   ------------------------------------------
   -- right part Vertical Speed from vario --
   ------------------------------------------
-  if widget.vertSpeed ~= nil then
+  if widget.VerticalSensor ~= nil then
     if widget.zoneID == 3 then
       drawSimpleSpeed (widget)
     else
@@ -481,8 +487,13 @@ end
 function varLib.paint (widget)
   libs.varLib.readSensors(widget)
   -- force background
-  --lcd.color(conf.colors.panelBackground)
-  lcd.color(widget.bgcolor)
+  -- warning color
+  if widget.warning_flag and widget.altitude > widget.heightLimit then
+    lcd.color(widget.limitColor)
+  else
+    lcd.color(widget.bgcolor)
+  end
+
   lcd.drawFilledRectangle(0, 0, widget.zoneWidth, widget.zoneHeight)  
   
   if widget.zoneID ~= 0 then
