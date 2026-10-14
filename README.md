@@ -18,3 +18,4 @@ Emulate a SynScan GPS using an Arduino (or a Raspberry Pi Pico, see "pico" branc
 ![Protocol](img/protocol.jpg) ![Build](img/arduino_gps.jpg)
 
 Thanks to keymlinux for the latitude/longitude encoding
+
